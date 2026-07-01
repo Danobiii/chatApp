@@ -30,6 +30,19 @@ class AuthServices {
     }
   }
 
+  //Session expiration
+  Future<void> sessionExpiration() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final tokenResult = await user.getIdTokenResult();
+      final authTime = tokenResult.authTime;
+      final difference = DateTime.now().difference(authTime!);
+      if (difference.inSeconds >= 10) {
+        await _auth.signOut();
+      }
+    }
+  }
+
   //sign up
   Future<UserCredential> signUpWithEmailPassword(String email, password) async {
     try {

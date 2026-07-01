@@ -1,7 +1,7 @@
 import 'package:chat_app/core/routes/chat_app_routes.dart';
 import 'package:chat_app/core/themes/theme_provider.dart';
 import 'package:chat_app/firebase_options.dart';
-import 'package:chat_app/core/themes/light_mode.dart';
+import 'package:chat_app/views/auth_folder/auth_services.dart';
 import 'package:chat_app/views/auth_folder/main_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await AuthServices().sessionExpiration();
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),

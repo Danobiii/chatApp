@@ -95,14 +95,13 @@ class _ChatPageState extends State<ChatPage> {
       builder: (context, snapshot) {
         //errors
         if (snapshot.hasError) {
-          Text("error:${snapshot.error}");
+          return Text("error:${snapshot.error}");
         }
         //loading
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Text("Loading");
         }
-        print("docs count: ${snapshot.data!.docs.length}"); 
-        print("docs: ${snapshot.data!.docs.map((d) => d.data())}");
+
         return ListView(
           controller: _scrollController,
           children: snapshot.data!.docs
@@ -125,9 +124,21 @@ class _ChatPageState extends State<ChatPage> {
       child: Column(
         children: [
           ChatBubble(message: data["messages"], isCurrentUser: isCurrentUser),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              _formatTimestamp(data["timeStamp"]),
+              style: const TextStyle(fontSize: 10, color: Colors.grey),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  String _formatTimestamp(Timestamp timeStamp) {
+    DateTime dateTime = timeStamp.toDate();
+    return "${dateTime.hour}:${dateTime.minute.toString().padLeft(2, "0")}";
   }
 
   Widget _buildUserInput() {

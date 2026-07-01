@@ -13,14 +13,14 @@ class HomePage extends StatelessWidget {
   //chat and auth service
   final ChatServices _chatService = ChatServices();
   final AuthServices _authService = AuthServices();
-
+  //should be called in MyDrawer
   void logOut() async {
     await FirebaseAuth.instance.signOut();
   }
 
   @override
   Widget build(BuildContext context) {
-    final homePageTheme = Theme.of(context).colorScheme;
+    // final homePageTheme = Theme.of(context).colorScheme;
     return Scaffold(
       drawer: MyDrawer(),
       appBar: AppBar(
@@ -45,11 +45,8 @@ class HomePage extends StatelessWidget {
         //loading
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Text("loading....");
-          // return Center(child: CircularProgressIndicator());
         }
-        // if (!snapshot.hasData || snapshot.data!.isEmpty) {
-        //   return const Center(child: Text("No users found"));
-        // }
+      
         //return list view
         return ListView(
           children: snapshot.data!
@@ -85,7 +82,8 @@ class HomePage extends StatelessWidget {
         },
       );
     } else {
-      return Container();
+      return const SizedBox.shrink();
     }
   }
 }
+ 
