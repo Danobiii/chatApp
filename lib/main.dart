@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await AuthServices().sessionExpiration();
+  // await AuthServices().sessionExpiration();
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
