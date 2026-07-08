@@ -46,7 +46,7 @@ class HomePage extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Text("loading....");
         }
-      
+
         //return list view
         return ListView(
           children: snapshot.data!
@@ -80,10 +80,10 @@ class HomePage extends StatelessWidget {
             ),
           );
         },
+        isOnine: userData["isOnline"] ?? false,
       );
     } else {
       return const SizedBox.shrink();
     }
   }
 }
- 

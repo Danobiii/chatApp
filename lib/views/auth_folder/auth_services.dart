@@ -19,11 +19,13 @@ class AuthServices {
         email: email,
         password: password,
       );
+
       //save user if it does not exist
       await _fireStore.collection('Users').doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
         "email": email,
-      });
+        "isOnline":true,
+      }, SetOptions(merge: true));
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw Exception(e.code);
@@ -37,7 +39,7 @@ class AuthServices {
       final tokenResult = await user.getIdTokenResult();
       final authTime = tokenResult.authTime;
       final difference = DateTime.now().difference(authTime!);
-      if (difference.inSeconds >= 10) {
+      if (difference.inMinutes >= 3) {
         await _auth.signOut();
       }
     }
@@ -68,6 +70,7 @@ class AuthServices {
 
   //sign out
   Future<void> signOut() async {
+    await _fireStore.collection("Users").doc(_auth.currentUser!.uid).update({"isOnline":false});
     return await _auth.signOut();
   }
 }
