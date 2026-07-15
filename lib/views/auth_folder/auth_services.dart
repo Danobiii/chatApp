@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class AuthServices {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+  final FirebaseDatabase _userStatus = FirebaseDatabase.instance;
   //get current user
   User? getCurrentuser() {
     return _auth.currentUser;
@@ -24,8 +26,18 @@ class AuthServices {
       await _fireStore.collection('Users').doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
         "email": email,
-        "isOnline":true,
+        "isOnline": true,
       }, SetOptions(merge: true));
+      //get reference to realtime database
+      DatabaseReference userStatusRef = _userStatus
+          .ref()
+          .child('status')
+          .child(userCredential.user!.uid);
+
+      //tel firebase what to d when a user disconnects
+      userStatusRef.onDisconnect().update({"isOnline": false});
+      //set online in realtim database
+      userStatusRef.update({"isOnline": true});
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw Exception(e.code);
@@ -70,7 +82,9 @@ class AuthServices {
 
   //sign out
   Future<void> signOut() async {
-    await _fireStore.collection("Users").doc(_auth.currentUser!.uid).update({"isOnline":false});
+    await _fireStore.collection("Users").doc(_auth.currentUser!.uid).update({
+      "isOnline": false,
+    });
     return await _auth.signOut();
   }
 }
