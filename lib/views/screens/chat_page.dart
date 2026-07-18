@@ -35,6 +35,19 @@ class _ChatPageState extends State<ChatPage> {
       }
     });
     Future.delayed(const Duration(milliseconds: 500), () => scrollDown());
+
+    //user typing status
+    String currentUserID = _authServices.getCurrentuser()!.uid;
+    List<String> ids = [currentUserID, widget.receiverID];
+    ids.sort();
+    String chatRoomID = ids.join("_");
+    _messageController.addListener(() {
+      if (_messageController.text.isNotEmpty) {
+        _chatService.setTypingStatus(chatRoomID, currentUserID, true);
+      } else {
+        _chatService.setTypingStatus(chatRoomID, currentUserID, false);
+      }
+    });
   }
 
   @override
@@ -70,6 +83,11 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    String currentUserId = _authServices.getCurrentuser()!.uid;
+    List<String> ids = [currentUserId, widget.receiverID];
+    ids.sort();
+    String chatRoomID = ids.join("_");
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.receiverEmail),
@@ -80,6 +98,29 @@ class _ChatPageState extends State<ChatPage> {
       body: Column(
         children: [
           Expanded(child: _buildMessageList()),
+          StreamBuilder<bool>(
+            stream: _chatService.getTypingStatus(chatRoomID, widget.receiverID),
+            builder: (context, snapshot) {
+              bool isTyping = snapshot.data ?? false;
+              if (isTyping) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 20, bottom: 5),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "${widget.receiverEmail} is typing...",
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
           _buildUserInput(),
         ],
       ),
@@ -148,7 +189,6 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           Expanded(
             child: MyTextfield(
-
               hintText: "Type a message",
               obscureText: false,
               controller: _messageController,

@@ -7,6 +7,7 @@ class ChatServices {
   // get instance of firestore
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseDatabase _typingStatus = FirebaseDatabase.instance;
   // getuser stream
   Stream<List<Map<String, dynamic>>> getUsersStream() {
     return _firestore.collection("Users").snapshots().asyncMap((
@@ -81,5 +82,36 @@ class ChatServices {
         .collection("messages")
         .orderBy("timeStamp", descending: false)
         .snapshots();
+  }
+
+  //function that writes to database
+  Future<void> setTypingStatus(
+    String chatRoomID,
+    String userUID,
+    bool isTyping,
+  ) async {
+    DatabaseReference userTypingStatus = _typingStatus
+        .ref()
+        .child('typing')
+        .child(chatRoomID)
+        .child(userUID);
+    await userTypingStatus.update({"isTyping": isTyping});
+  }
+
+  //function that reads from database
+  Stream<bool> getTypingStatus(String chatRoomID, String receiverUID) {
+    return FirebaseDatabase.instance
+        .ref()
+        .child('typing')
+        .child(chatRoomID)
+        .child(receiverUID)
+        .onValue
+        .map((event) {
+          if (event.snapshot.exists) {
+            Map status = event.snapshot.value as Map;
+            return status['isTyping'] ?? false;
+          }
+          return false;
+        });
   }
 }
