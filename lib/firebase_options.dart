@@ -47,6 +47,7 @@ class DefaultFirebaseOptions {
     projectId: 'minichatapp-200f9',
     authDomain: 'minichatapp-200f9.firebaseapp.com',
     storageBucket: 'minichatapp-200f9.firebasestorage.app',
+      databaseURL: "https://minichatapp-200f9-default-rtdb.firebaseio.com",
   );
 
   static const FirebaseOptions android = FirebaseOptions(
