@@ -4,10 +4,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class ChatBubble extends StatelessWidget {
   final String message;
   final bool isCurrentUser;
+  final bool isRead;
+
   const ChatBubble({
     super.key,
     required this.message,
     required this.isCurrentUser,
+    required this.isRead,
   });
 
   @override
@@ -19,7 +22,20 @@ class ChatBubble extends StatelessWidget {
         color: isCurrentUser ? Colors.green : Colors.grey,
         borderRadius: BorderRadius.circular(12.r),
       ),
-      child: Text(message),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+
+        children: [
+          Text(message),
+
+          if (isCurrentUser)
+            Icon(
+              isRead ? Icons.done_all : Icons.done,
+              size: 14,
+              color: isRead ? Colors.blue : Colors.white,
+            ),
+        ],
+      ),
     );
   }
 }

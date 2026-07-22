@@ -48,6 +48,9 @@ class _ChatPageState extends State<ChatPage> {
         _chatService.setTypingStatus(chatRoomID, currentUserID, false);
       }
     });
+
+    //mark messages as read when chat opens
+    _chatService.markMessagesAsRead(chatRoomID, currentUserID);
   }
 
   @override
@@ -129,8 +132,8 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessageList() {
     String senderID = _authServices.getCurrentuser()!.uid;
-    print("senderID: $senderID");
-    print("receiverID: ${widget.receiverID}");
+    // print("senderID: $senderID");
+    // print("receiverID: ${widget.receiverID}");
     return StreamBuilder(
       stream: _chatService.getMessages(widget.receiverID, senderID),
       builder: (context, snapshot) {
@@ -163,10 +166,17 @@ class _ChatPageState extends State<ChatPage> {
     return Container(
       alignment: alignment,
       child: Column(
+        crossAxisAlignment: isCurrentUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
-          ChatBubble(message: data["messages"], isCurrentUser: isCurrentUser),
+          ChatBubble(
+            message: data["messages"],
+            isCurrentUser: isCurrentUser,
+            isRead: data["isRead"] ?? false,
+          ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.only(left: 20, right: 20),
             child: Text(
               _formatTimestamp(data["timeStamp"]),
               style: const TextStyle(fontSize: 10, color: Colors.grey),
@@ -179,7 +189,7 @@ class _ChatPageState extends State<ChatPage> {
 
   String _formatTimestamp(Timestamp timeStamp) {
     DateTime dateTime = timeStamp.toDate();
-    return "${dateTime.hour}:${dateTime.minute.toString().padLeft(2, "0")}";
+    return "${dateTime.hour.toString().padLeft(2, "0")}:${dateTime.minute.toString().padLeft(2, "0")}";
   }
 
   Widget _buildUserInput() {

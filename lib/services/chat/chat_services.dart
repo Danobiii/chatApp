@@ -53,6 +53,7 @@ class ChatServices {
       messages: message,
       timeStamp: timeStamp,
       receiverID: receiverID,
+      isRead: false,
     );
 
     //chat room id for two users
@@ -113,5 +114,22 @@ class ChatServices {
           }
           return false;
         });
+  }
+
+  Future<void> markMessagesAsRead(
+    String chatRoomID,
+    String currentUserID,
+  ) async {
+    QuerySnapshot unreadMessages = await _firestore
+        .collection("chat_rooms")
+        .doc(chatRoomID)
+        .collection("messages")
+        .where("isRead", isEqualTo: false)
+        .where("receiverID", isEqualTo: currentUserID)
+        .get();
+
+    for (var doc in unreadMessages.docs) {
+      await doc.reference.update({"isRead": true});
+    }
   }
 }
