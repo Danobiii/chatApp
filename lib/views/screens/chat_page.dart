@@ -145,7 +145,11 @@ class _ChatPageState extends State<ChatPage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Text("Loading");
         }
-
+        //double tick when inside chatpage
+        List<String> ids = [senderID, widget.receiverID];
+        ids.sort();
+        String chatRoomID = ids.join("_");
+        _chatService.markMessagesAsRead(chatRoomID, senderID);
         return ListView(
           controller: _scrollController,
           children: snapshot.data!.docs
