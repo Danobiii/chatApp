@@ -132,4 +132,13 @@ class ChatServices {
       await doc.reference.update({"isRead": true});
     }
   }
+
+  Future<void> deleteMessage(String messageID, String chatRoomID) async {
+    await _firestore
+        .collection("chat_rooms")
+        .doc(chatRoomID)
+        .collection("messages")
+        .doc(messageID)
+        .delete();
+  }
 }

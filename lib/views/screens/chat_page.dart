@@ -174,10 +174,51 @@ class _ChatPageState extends State<ChatPage> {
             ? CrossAxisAlignment.end
             : CrossAxisAlignment.start,
         children: [
-          ChatBubble(
-            message: data["messages"],
-            isCurrentUser: isCurrentUser,
-            isRead: data["isRead"] ?? false,
+          GestureDetector(
+            onLongPress: () {
+              if (isCurrentUser) {
+                //show delete dialog
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Delete message'),
+                    content: Text(
+                      "Are you sure you want to delete this message?",
+                    ),
+                    actions: [
+                      //cancel button
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text("Cancel"),
+                      ),
+                      //delete button
+                      TextButton(
+                        onPressed: () {
+                          List<String> ids = [
+                            _authServices.getCurrentuser()!.uid,
+                            widget.receiverID,
+                          ];
+                          ids.sort();
+                          String chatRoomID = ids.join("_");
+                          // delete message
+                          _chatService.deleteMessage(doc.id, chatRoomID);
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          "Delete",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+            child: ChatBubble(
+              message: data["messages"],
+              isCurrentUser: isCurrentUser,
+              isRead: data["isRead"] ?? false,
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(left: 20, right: 20),
