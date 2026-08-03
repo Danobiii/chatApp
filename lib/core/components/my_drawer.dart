@@ -1,12 +1,20 @@
 import 'package:chat_app/core/routes/routes_name.dart';
-import 'package:chat_app/views/auth_folder/auth_services.dart';
+import 'package:chat_app/services/chat/auth_services.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class MyDrawer extends StatelessWidget {
-  MyDrawer({super.key});
+class MyDrawer extends StatefulWidget {
+  const MyDrawer({super.key});
+
+  @override
+  State<MyDrawer> createState() => _MyDrawerState();
+}
+
+class _MyDrawerState extends State<MyDrawer> {
   final _authService = AuthServices();
+  String? _profilePicUrl;
+
   void logOut() async {
     await _authService.signOut();
   }
@@ -22,10 +30,35 @@ class MyDrawer extends StatelessWidget {
           Column(
             children: [
               DrawerHeader(
-                child: Icon(
-                  Icons.chat,
-                  size: 50.sp,
-                  color: drawerTheme.background,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    //profile pic
+                    GestureDetector(
+                      onTap: () async {
+                        String? url = await _authService.uploadPFP();
+                        if (url != null) {
+                          setState(() {
+                            _profilePicUrl = url;
+                          });
+                        }
+                      },
+                      child: CircleAvatar(
+                        radius: 40.r,
+                        backgroundImage: _profilePicUrl != null
+                            ? NetworkImage(_profilePicUrl!)
+                            : null,
+                        child: _profilePicUrl == null
+                            ? Icon(Icons.person, size: 40, color: Colors.white)
+                            : null,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      "Tap to change Photo",
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
                 ),
               ),
               Padding(

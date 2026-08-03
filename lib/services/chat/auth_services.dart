@@ -1,11 +1,16 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AuthServices {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
   final FirebaseDatabase _userStatus = FirebaseDatabase.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   //get current user
   User? getCurrentuser() {
     return _auth.currentUser;
@@ -86,5 +91,25 @@ class AuthServices {
       "isOnline": false,
     });
     return await _auth.signOut();
+  }
+
+  Future<String?> uploadPFP() async {
+    //pick image from gallery
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
+    //return null if user cancel
+    if (image == null) return null;
+    //upload to firebase storage
+    final String uid = _auth.currentUser!.uid;
+    final Reference storageRef = _storage.ref().child("profile_pictures").child("$uid.jpg");
+    await storageRef.putFile(File (image.path));
+    //download URL
+    final downloadURL = await storageRef.getDownloadURL();
+//save URL to firestore
+await _fireStore.collection("Users").doc(uid).update({"profilePictureUrl":downloadURL});
+return downloadURL;
   }
 }

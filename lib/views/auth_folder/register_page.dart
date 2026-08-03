@@ -1,6 +1,6 @@
 import 'package:chat_app/core/components/my_button.dart';
 import 'package:chat_app/core/components/my_textfield.dart';
-import 'package:chat_app/views/auth_folder/auth_services.dart';
+import 'package:chat_app/services/chat/auth_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 

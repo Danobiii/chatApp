@@ -1,7 +1,7 @@
 import 'package:chat_app/core/components/my_drawer.dart';
 import 'package:chat_app/core/components/user_tile.dart';
 import 'package:chat_app/services/chat/chat_services.dart';
-import 'package:chat_app/views/auth_folder/auth_services.dart';
+import 'package:chat_app/services/chat/auth_services.dart';
 import 'package:chat_app/views/auth_folder/main_page.dart';
 import 'package:chat_app/views/screens/chat_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
