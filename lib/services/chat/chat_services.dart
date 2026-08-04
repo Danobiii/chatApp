@@ -133,7 +133,7 @@ class ChatServices {
     }
   }
 
-  Future<void> deleteMessage(String messageID, String chatRoomID) async {
+  Future<void> deleteMessage( String messageID,  String chatRoomID) async {
     await _firestore
         .collection("chat_rooms")
         .doc(chatRoomID)

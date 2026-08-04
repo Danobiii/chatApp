@@ -193,7 +193,7 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                       //delete button
                       TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           List<String> ids = [
                             _authServices.getCurrentuser()!.uid,
                             widget.receiverID,
@@ -201,7 +201,7 @@ class _ChatPageState extends State<ChatPage> {
                           ids.sort();
                           String chatRoomID = ids.join("_");
                           // delete message
-                          _chatService.deleteMessage(doc.id, chatRoomID);
+                         await _chatService.deleteMessage(doc.id, chatRoomID);
                           Navigator.pop(context);
                         },
                         child: Text(

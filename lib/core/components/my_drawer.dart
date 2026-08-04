@@ -12,6 +12,19 @@ class MyDrawer extends StatefulWidget {
 }
 
 class _MyDrawerState extends State<MyDrawer> {
+  @override
+  void initState() {
+    super.initState();
+    _loadProfilePicture;
+  }
+
+  Future<void> _loadProfilePicture() async {
+    String? url = await _authService.getProfilePicture();
+    setState(() {
+      _profilePicUrl = url;
+    });
+  }
+
   final _authService = AuthServices();
   String? _profilePicUrl;
 
