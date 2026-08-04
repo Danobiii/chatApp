@@ -15,7 +15,7 @@ class _MyDrawerState extends State<MyDrawer> {
   @override
   void initState() {
     super.initState();
-    _loadProfilePicture;
+    _loadProfilePicture();
   }
 
   Future<void> _loadProfilePicture() async {
