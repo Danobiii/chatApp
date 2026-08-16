@@ -1,4 +1,5 @@
 import 'package:chat_app/core/components/my_drawer.dart';
+import 'package:chat_app/core/components/search_widget.dart';
 import 'package:chat_app/core/components/user_tile.dart';
 import 'package:chat_app/services/chat/chat_services.dart';
 import 'package:chat_app/services/chat/auth_services.dart';
@@ -7,12 +8,19 @@ import 'package:chat_app/views/screens/chat_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   //chat and auth service
   final ChatServices _chatService = ChatServices();
+
   final AuthServices _authService = AuthServices();
+  String searchText = "";
   //should be called in MyDrawer
   void logOut() async {
     await FirebaseAuth.instance.signOut();
@@ -30,7 +38,23 @@ class HomePage extends StatelessWidget {
         foregroundColor: Colors.grey,
         elevation: 0,
       ),
-      body: _buildUserList(),
+      body: Column(
+        children: [
+          Container(
+            child: SearchWidget(
+              searchIcon: Icon(Icons.search),
+              text: "search users....",
+
+              onChanged: (value) {
+                setState(() {
+                  searchText = value.toLowerCase();
+                });
+              },
+            ),
+          ),
+          Expanded(child: _buildUserList()),
+        ],
+      ),
     );
   }
 
@@ -40,16 +64,19 @@ class HomePage extends StatelessWidget {
       builder: (context, snapshot) {
         //error
         if (snapshot.hasError) {
-          return Text("Error");
+          return Text(snapshot.error.toString());
         }
         //loading
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Text("loading....");
         }
-
+        List<Map<String, dynamic>> users = snapshot.data!;
+        List filteredUsers = users.where((user) {
+          return user["email"].toLowerCase().contains(searchText);
+        }).toList();
         //return list view
         return ListView(
-          children: snapshot.data!
+          children: filteredUsers
               .map<Widget>((userData) => _buildUserListItem(userData, context))
               .toList(),
         );
