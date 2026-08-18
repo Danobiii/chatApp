@@ -56,7 +56,7 @@ class UserTile extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.grey,
+                  color: Colors.green,
                   shape: BoxShape.circle,
                 ),
                 child: Text(
