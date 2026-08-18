@@ -91,7 +91,7 @@ class _HomePageState extends State<HomePage> {
   ) {
     //build chatroom
     String currentUserID = _authService.getCurrentuser()!.uid;
-    List<String> ids =[currentUserID, userData["email"]];
+    List<String> ids = [currentUserID, userData["uid"]];
     ids.sort();
     String chatRoomID = ids.join("_");
     //diplay all users except current user
@@ -100,26 +100,27 @@ class _HomePageState extends State<HomePage> {
       // print("userData email: ${userData["email"]}");
       return StreamBuilder(
         stream: _chatService.getUnreadMessageCount(chatRoomID, currentUserID),
-        builder:(context, snapshot) {
+        builder: (context, snapshot) {
           int unreadCount = snapshot.data ?? 0;
-        return UserTile(
-          text: userData["email"],
-          onTap: () {
-            //tap on a user ->> go to chat page
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ChatPage(
-                  receiverEmail: userData["email"],
-                  receiverID: userData["uid"],
+          return UserTile(
+            text: userData["email"],
+            onTap: () {
+              //tap on a user ->> go to chat page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatPage(
+                    receiverEmail: userData["email"],
+                    receiverID: userData["uid"],
+                  ),
                 ),
-              ),
-            );
-          },
-          isOnine: userData["isOnline"] ?? false,
-          unreadCount:unreadCount,
-        );
-    });
+              );
+            },
+            isOnine: userData["isOnline"] ?? false,
+            unreadCount: unreadCount,
+          );
+        },
+      );
     } else {
       return const SizedBox.shrink();
     }
