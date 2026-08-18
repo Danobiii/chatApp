@@ -5,11 +5,13 @@ class UserTile extends StatelessWidget {
   final String text;
   final void Function()? onTap;
   final bool isOnine;
+  final int unreadCount;
   const UserTile({
     super.key,
     required this.text,
     required this.onTap,
     required this.isOnine,
+    required this.unreadCount,
   });
 
   @override
@@ -49,6 +51,23 @@ class UserTile extends StatelessWidget {
             SizedBox(width: 20),
             //username
             Text(text),
+            Spacer(),
+            if (unreadCount > 0)
+              Container(
+                padding: EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.grey,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  unreadCount.toString(),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
           ],
         ),
       ),

@@ -133,12 +133,26 @@ class ChatServices {
     }
   }
 
-  Future<void> deleteMessage( String messageID,  String chatRoomID) async {
+  Future<void> deleteMessage(String messageID, String chatRoomID) async {
     await _firestore
         .collection("chat_rooms")
         .doc(chatRoomID)
         .collection("messages")
         .doc(messageID)
         .delete();
+  }
+
+  Stream<int> getUnreadMessageCount(
+    String chatRoomID,
+    String currentUserID,
+  ) {
+    return _firestore
+        .collection("chat_rooms")
+        .doc(chatRoomID)
+        .collection("messages")
+        .where("isRead", isEqualTo: false)
+        .where("receiverID", isEqualTo: currentUserID)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
   }
 }
