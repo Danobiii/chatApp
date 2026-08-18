@@ -21,6 +21,8 @@ Future<void> main() async {
     badge: true,
     sound: true,
   );
+  String? token = await messaging.getToken();
+  print("FCM TOKEN: $token");
 
   runApp(
     ChangeNotifierProvider(
