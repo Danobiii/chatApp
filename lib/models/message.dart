@@ -20,6 +20,7 @@ class Message {
   Map<String, dynamic> toMap() {
     return {
       "senderID": senderID,
+      //check later
       "receiverEmail": senderEmail,
       "messages": messages,
       "timeStamp": timeStamp,
