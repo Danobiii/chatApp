@@ -8,10 +8,26 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter/foundation.dart' show kDebugMode;
+// import 'package:firebase_database/firebase_database.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // if (kDebugMode) {
+  //   FirebaseFirestore.instance.useFirestoreEmulator('10.0.2.2', 8080);
+  //   await FirebaseAuth.instance.useAuthEmulator('10.0.2.2', 9099);
+  //   FirebaseDatabase.instance.useDatabaseEmulator('10.0.2.2', 9000);
+  // }
+  // if (kDebugMode) {
+  //   const emulatorHost = '192.168.0.112'; // your laptop's IP
+  //   FirebaseFirestore.instance.useFirestoreEmulator(emulatorHost, 8080);
+  //   await FirebaseAuth.instance.useAuthEmulator(emulatorHost, 9099);
+  //   FirebaseDatabase.instance.useDatabaseEmulator(emulatorHost, 9000);
+  // }
   await AuthServices().sessionExpiration();
 
   final FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -21,9 +37,12 @@ Future<void> main() async {
     badge: true,
     sound: true,
   );
-  String? token = await messaging.getToken();
-  print("FCM TOKEN: $token");
-
+  try {
+    String? token = await messaging.getToken();
+    // print("FCM TOKEN: $token");
+  } catch (e) {
+    print("Failed to get FCM token: $e");
+  }
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,15 +25,15 @@ class AuthServices {
         password: password,
       );
       String? token = await FirebaseMessaging.instance.getToken();
-      print("FCM TOKEN: $token");
+      // print("FCM TOKEN: $token");
       if (token != null) {
         await _fireStore
             .collection("Users")
             .doc(userCredential.user!.uid)
             .update({"FCM TOKEN": token});
-        print("FCM TOKEN SAVED");
+        // print("FCM TOKEN SAVED");
       }
-      print("FCM TOKEN SAVED");
+      // print("FCM TOKEN SAVED");
 
       //save user if it does not exist
       await _fireStore.collection('Users').doc(userCredential.user!.uid).set({
@@ -49,13 +47,14 @@ class AuthServices {
           .child('status')
           .child(userCredential.user!.uid);
 
-      //tel firebase what to d when a user disconnects
+      //tell firebase what to d when a user disconnects
       userStatusRef.onDisconnect().update({"isOnline": false});
       //set online in realtim database
       userStatusRef.update({"isOnline": true});
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      throw Exception(e.code);
+      print("login error ${e.code}");
+      throw Exception(getFriendlyErrorMessage(e.code));
     }
   }
 
@@ -78,20 +77,20 @@ class AuthServices {
       //create user
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
-      print("User created in Auth: ${userCredential.user!.uid}");
+      // print("User created in Auth: ${userCredential.user!.uid}");
 
       //save user info
       await _fireStore.collection('Users').doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
         "email": email,
       });
-      print("User saved to Firestore ✅");
+      // print("User saved to Firestore ");
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
       print("Auth error: ${e.code}");
 
-      throw Exception(e.code);
+      throw Exception(getFriendlyErrorMessage(e.code));
     }
   }
 
@@ -119,7 +118,7 @@ class AuthServices {
       CloudinaryResponse response = await cloudinary.uploadFile(
         CloudinaryFile.fromFile(image.path, folder: "profile_pictures"),
       );
-      print('cloudinary image: ${response.secureUrl}');
+      // print('cloudinary image: ${response.secureUrl}');
 
       //download URL
       String downloadURL = response.secureUrl;
@@ -130,7 +129,7 @@ class AuthServices {
       });
       return downloadURL;
     } catch (e) {
-      print("Upload error: $e");
+      // print("Upload error: $e");
       return null;
     }
   }
@@ -139,5 +138,19 @@ class AuthServices {
     String? uid = _auth.currentUser!.uid;
     DocumentSnapshot doc = await _fireStore.collection("Users").doc(uid).get();
     return doc["profilePictureUrl"];
+  }
+
+  String getFriendlyErrorMessage(String code) {
+    if (code == "invalid-credential") {
+      return "Incorrect email or password.";
+    } else if (code == "email-already-in-use") {
+      return "This email is already registered.";
+    } else if (code == "weak-password") {
+      return "Please choose a stronger password.";
+    } else if (code == "network-request-failed") {
+      return "Network error. Please check your connection.";
+    } else {
+      return "Something went wrong. Please try again.";
+    }
   }
 }

@@ -7,9 +7,9 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import {setGlobalOptions} from "firebase-functions";
 import {onDocumentCreated} from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
+import * as admin from "firebase-admin";
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
@@ -24,12 +24,44 @@ import * as logger from "firebase-functions/logger";
 // functions should each use functions.runWith({ maxInstances: 10 }) instead.
 // In the v1 API, each function can only serve one request per container, so
 // this will be the maximum concurrent request count.
-setGlobalOptions({maxInstances: 10});
+admin.initializeApp;
+// setGlobalOptions({maxInstances: 10});
 export const newMessage = onDocumentCreated(
   "chat_rooms/{chatRoomID}/messages/{messageID}",
-  (event)=>{
+ async (event)=>{
     const messageData = event.data?.data();
+        if (!messageData) {
+      logger.warn("No message data found, skipping.");
+      return;
+    }
     logger.info("New message created!", {messageData: messageData});
+
+    const receiverID = messageData.receiverID;
+    const messageText = messageData.messages;
+    if(!receiverID){
+      logger.warn("Message has no receiverID");
+      return;
+    }
+    const userDoc = await admin.firestore().collection("Users").doc(receiverID).get();
+    const fcmToken = userDoc.data()?.["FCM TOKEN"];
+
+    if(!fcmToken){
+      logger.warn("No FCM token found for user ${receiverID}");
+      return;
+    }
+    const payLoad = {
+      token:fcmToken,
+      notification:{
+title: "New Message",
+body:messageText || "You have a new message",
+      },
+    };
+    try{
+      const response = await admin.messaging().send(payLoad);
+      logger.info("Notification sent successfully", {response});
+    }catch(error){
+logger.error("Error sending Notification", {error});
+    }
   });
 
 // export const helloWorld = onRequest((request, response) => {
