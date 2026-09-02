@@ -39,7 +39,7 @@ Future<void> main() async {
   );
   try {
     String? token = await messaging.getToken();
-    // print("FCM TOKEN: $token");
+    
   } catch (e) {
     print("Failed to get FCM token: $e");
   }

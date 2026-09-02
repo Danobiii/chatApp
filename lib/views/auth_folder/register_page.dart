@@ -53,18 +53,21 @@ class _RegisterPageState extends State<RegisterPage> {
           );
         } catch (e) {
           print(e);
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.white),
-                SizedBox(width: 10),
-                Text(e.toString().replaceFirst("Exception:", "")),
-              ],
-            ),
-            backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.r),
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.white),
+                  SizedBox(width: 10),
+
+                  Text(e.toString().replaceFirst("Exception:", "")),
+                ],
+              ),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.r),
+              ),
             ),
           );
         }
@@ -108,9 +111,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       _passwordController.text.trim() ==
                       _confirmPasswordController.text.trim();
                 });
-                print(_passwordController.text);
-                print(_confirmPasswordController.text);
-                print(passwordMatch);
               },
               hintText: 'Confirm password',
               obscureText: true,
@@ -139,6 +139,8 @@ class _RegisterPageState extends State<RegisterPage> {
             MyButton(
               text: 'Sign up',
               onTap: () {
+                print("button clicked");
+
                 signUp(context);
               },
             ),
