@@ -53,11 +53,19 @@ class _RegisterPageState extends State<RegisterPage> {
           );
         } catch (e) {
           print(e);
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(content: Text(e.toString()));
-            },
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                SizedBox(width: 10),
+                Text(e.toString().replaceFirst("Exception:", "")),
+              ],
+            ),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.r),
+            ),
           );
         }
       }

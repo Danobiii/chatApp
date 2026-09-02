@@ -27,9 +27,22 @@ class _LoginPageState extends State<LoginPage> {
         _passwordController.text.trim(),
       );
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(title: Text(e.toString())),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white),
+              SizedBox(width: 10),
+
+              Text(e.toString().replaceFirst("Exception:", "")),
+            ],
+          ),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+        ),
       );
     }
   }
@@ -56,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
               "Welcome Back!",
               style: TextStyle(
                 fontSize: 16.sp,
-                color: loginTheme.primary
+                color: loginTheme.primary,
                 fontWeight: FontWeight.bold,
               ),
             ),

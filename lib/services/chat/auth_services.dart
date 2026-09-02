@@ -53,7 +53,7 @@ class AuthServices {
       userStatusRef.update({"isOnline": true});
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      print("login error ${e.code}");
+      print("login error: ${e.code}");
       throw Exception(getFriendlyErrorMessage(e.code));
     }
   }
@@ -147,6 +147,8 @@ class AuthServices {
       return "This email is already registered.";
     } else if (code == "weak-password") {
       return "Please choose a stronger password.";
+    } else if (code == "invalid-email") {
+      return "Invalid email address.";
     } else if (code == "network-request-failed") {
       return "Network error. Please check your connection.";
     } else {
