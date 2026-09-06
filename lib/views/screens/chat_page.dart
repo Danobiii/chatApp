@@ -4,6 +4,9 @@ import 'package:chat_app/services/chat/chat_services.dart';
 import 'package:chat_app/services/chat/auth_services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'dart:io';
+
+import 'package:image_picker/image_picker.dart';
 
 class ChatPage extends StatefulWidget {
   final String receiverEmail;
@@ -22,6 +25,41 @@ class _ChatPageState extends State<ChatPage> {
   final ChatServices _chatService = ChatServices();
 
   final AuthServices _authServices = AuthServices();
+
+  XFile? _pendingMedia;
+  String? _pendingMediaType;
+
+  void pickMedia(bool isVideo) async {
+    final file = await _chatService.pickMedia(isVideo: isVideo);
+    if (file != null) {
+      setState(() {
+        _pendingMedia = file;
+        _pendingMediaType = isVideo ? "video" : "image";
+      });
+    }
+  }
+
+  void _sendPendingMedia() async {
+    if (_pendingMedia != null) {
+      await _chatService.sendMediaMessage(
+        widget.receiverID,
+        _pendingMedia!,
+        _pendingMediaType!,
+      );
+      setState(() {
+        _pendingMedia = null;
+        _pendingMediaType = null;
+      });
+      scrollDown();
+    }
+  }
+
+  void _cancelPendingMedia() {
+    setState(() {
+      _pendingMedia = null;
+      _pendingMediaType = null;
+    });
+  }
 
   //textfield focus
   FocusNode myFocusNode = FocusNode();
@@ -124,6 +162,7 @@ class _ChatPageState extends State<ChatPage> {
               return const SizedBox.shrink();
             },
           ),
+          _buildMediaPreview(),
           _buildUserInput(),
         ],
       ),
@@ -201,7 +240,7 @@ class _ChatPageState extends State<ChatPage> {
                           ids.sort();
                           String chatRoomID = ids.join("_");
                           // delete message
-                         await _chatService.deleteMessage(doc.id, chatRoomID);
+                          await _chatService.deleteMessage(doc.id, chatRoomID);
                           Navigator.pop(context);
                         },
                         child: Text(
@@ -237,12 +276,53 @@ class _ChatPageState extends State<ChatPage> {
     return "${dateTime.hour.toString().padLeft(2, "0")}:${dateTime.minute.toString().padLeft(2, "0")}";
   }
 
+  Widget _buildMediaPreview() {
+    if (_pendingMedia == null) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.all(8),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          _pendingMediaType == "image"
+              ? Image.file(
+                  File(_pendingMedia!.path),
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                )
+              : const Icon(Icons.videocam, size: 40),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(_pendingMedia!.name, overflow: TextOverflow.ellipsis),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: _cancelPendingMedia,
+          ),
+          IconButton(
+            icon: const Icon(Icons.send, color: Colors.blue),
+            onPressed: _sendPendingMedia,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildUserInput() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 50),
       child: Row(
         children: [
+          IconButton(
+  icon: const Icon(Icons.attach_file),
+  onPressed: () => pickMedia(false), // pass true for video picker
+),
           Expanded(
+            
             child: MyTextfield(
               hintText: "Type a message",
               obscureText: false,

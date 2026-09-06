@@ -7,6 +7,7 @@ import 'package:chat_app/views/auth_folder/main_page.dart';
 import 'package:chat_app/views/screens/chat_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({super.key});
@@ -68,7 +69,18 @@ class _HomePageState extends State<HomePage> {
         }
         //loading
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Text("loading....");
+          return Center(
+            child: SizedBox(
+              // height: 24.h,
+              // width: 24.w,
+              child: CircularProgressIndicator(
+                color: Colors.blue, // spinner color
+                strokeWidth: 3, // thickness of the ring
+                backgroundColor:
+                    Colors.grey[200], // the "track" behind the spinner
+              ),
+            ),
+          );
         }
         List<Map<String, dynamic>> users = snapshot.data!;
         List filteredUsers = users.where((user) {

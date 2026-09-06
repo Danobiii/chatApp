@@ -101,7 +101,9 @@ class AuthServices {
     });
     return await _auth.signOut();
   }
-
+Future<String?> fileSharing() async{
+  //pick
+}
   Future<String?> uploadPFP() async {
     //pick image from gallery
     try {
@@ -146,7 +148,7 @@ class AuthServices {
     } else if (code == "email-already-in-use") {
       return "This email is already registered.";
     } else if (code == "weak-password") {
-      return "Please choose a stronger password.";
+      return "Please choose a stronger password, \n Password should be at least 6 characters .";
     } else if (code == "invalid-email") {
       return "Invalid email address.";
     } else if (code == "network-request-failed") {

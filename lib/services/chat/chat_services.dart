@@ -2,6 +2,8 @@ import 'package:chat_app/models/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:cloudinary_public/cloudinary_public.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ChatServices {
   // get instance of firestore
@@ -54,6 +56,8 @@ class ChatServices {
       timeStamp: timeStamp,
       receiverID: receiverID,
       isRead: false,
+      type: 'text',
+      mediaURL: null,
     );
 
     //chat room id for two users
@@ -142,10 +146,7 @@ class ChatServices {
         .delete();
   }
 
-  Stream<int> getUnreadMessageCount(
-    String chatRoomID,
-    String currentUserID,
-  ) {
+  Stream<int> getUnreadMessageCount(String chatRoomID, String currentUserID) {
     return _firestore
         .collection("chat_rooms")
         .doc(chatRoomID)
@@ -154,5 +155,50 @@ class ChatServices {
         .where("receiverID", isEqualTo: currentUserID)
         .snapshots()
         .map((snapshot) => snapshot.docs.length);
+  }
+
+  //pick file
+  Future<XFile?> pickMedia({required bool isVideo}) async {
+    final picker = ImagePicker();
+    if (isVideo) {
+      return await picker.pickVideo(source: ImageSource.gallery);
+    } else {
+      return await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 50,
+      );
+    }
+  }
+
+  //upload file to cloudinary and send as a message
+  Future<void> sendMediaMessage(
+    String receiverID,
+    XFile file,
+    String type,
+  ) async {
+    final String currentUserId = _auth.currentUser!.uid;
+    final String currentUserEmail = _auth.currentUser!.email!;
+    final Timestamp timeStamp = Timestamp.now();
+
+    final cloudinary = CloudinaryPublic('geegypvd', "chat_app_preset");
+    CloudinaryResponse response = await cloudinary.uploadFile(
+      CloudinaryFile.fromFile(
+        file.path,
+        folder: "chat_media",
+        resourceType: type == "video"
+            ? CloudinaryResourceType.Video
+            : CloudinaryResourceType.Image,
+      ),
+    );
+    Message newMessage = Message(
+      senderID: currentUserId,
+      senderEmail: currentUserEmail,
+      messages: "",
+      timeStamp: timeStamp,
+      receiverID: receiverID,
+      isRead: false,
+      type: type,
+      mediaURL: response.secureUrl,
+    );
   }
 }
