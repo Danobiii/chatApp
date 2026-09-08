@@ -171,34 +171,84 @@ class ChatServices {
   }
 
   //upload file to cloudinary and send as a message
+
+  // Future<void> sendMediaMessage(
+  //   String receiverID,
+  //   XFile file,
+  //   String type,
+  // ) async {
+  //   final String currentUserId = _auth.currentUser!.uid;
+  //   final String currentUserEmail = _auth.currentUser!.email!;
+  //   final Timestamp timeStamp = Timestamp.now();
+
+  //   final cloudinary = CloudinaryPublic('geegypvd', "chat_app_preset");
+  //   CloudinaryResponse response = await cloudinary.uploadFile(
+  //     CloudinaryFile.fromFile(
+  //       file.path,
+  //       folder: "chat_media",
+  //       resourceType: type == "video"
+  //           ? CloudinaryResourceType.Video
+  //           : CloudinaryResourceType.Image,
+  //     ),
+  //   );
+  //   Message newMessage = Message(
+  //     senderID: currentUserId,
+  //     senderEmail: currentUserEmail,
+  //     messages: "",
+  //     timeStamp: timeStamp,
+  //     receiverID: receiverID,
+  //     isRead: false,
+  //     type: type,
+  //     mediaURL: response.secureUrl,
+  //   );
+  //   print("sendmediamessage function completed");
+  // }
   Future<void> sendMediaMessage(
     String receiverID,
     XFile file,
     String type,
   ) async {
-    final String currentUserId = _auth.currentUser!.uid;
-    final String currentUserEmail = _auth.currentUser!.email!;
-    final Timestamp timeStamp = Timestamp.now();
+    try {
+      final String currentUserId = _auth.currentUser!.uid;
+      final String currentUserEmail = _auth.currentUser!.email!;
+      final Timestamp timeStamp = Timestamp.now();
 
-    final cloudinary = CloudinaryPublic('geegypvd', "chat_app_preset");
-    CloudinaryResponse response = await cloudinary.uploadFile(
-      CloudinaryFile.fromFile(
-        file.path,
-        folder: "chat_media",
-        resourceType: type == "video"
-            ? CloudinaryResourceType.Video
-            : CloudinaryResourceType.Image,
-      ),
-    );
-    Message newMessage = Message(
-      senderID: currentUserId,
-      senderEmail: currentUserEmail,
-      messages: "",
-      timeStamp: timeStamp,
-      receiverID: receiverID,
-      isRead: false,
-      type: type,
-      mediaURL: response.secureUrl,
-    );
+      final cloudinary = CloudinaryPublic('geegypvd', "chat_app_preset");
+      print("Starting upload...");
+      CloudinaryResponse response = await cloudinary.uploadFile(
+        CloudinaryFile.fromFile(
+          file.path,
+          folder: "chat_media",
+          resourceType: type == "video"
+              ? CloudinaryResourceType.Video
+              : CloudinaryResourceType.Image,
+        ),
+      );
+      print("Upload successful: ${response.secureUrl}");
+
+      Message newMessage = Message(
+        senderID: currentUserId,
+        senderEmail: currentUserEmail,
+        messages: "",
+        timeStamp: timeStamp,
+        receiverID: receiverID,
+        isRead: false,
+        type: type,
+        mediaURL: response.secureUrl,
+      );
+
+      List<String> ids = [currentUserId, receiverID];
+      ids.sort();
+      String chatRoomID = ids.join("_");
+
+      await _firestore
+          .collection("chat_rooms")
+          .doc(chatRoomID)
+          .collection("messages")
+          .add(newMessage.toMap());
+      print("Message saved to Firestore!");
+    } catch (e) {
+      print("sendMediaMessage error: $e");
+    }
   }
 }

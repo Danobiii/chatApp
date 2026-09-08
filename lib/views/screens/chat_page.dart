@@ -253,11 +253,32 @@ class _ChatPageState extends State<ChatPage> {
                 );
               }
             },
-            child: ChatBubble(
-              message: data["messages"],
-              isCurrentUser: isCurrentUser,
-              isRead: data["isRead"] ?? false,
-            ),
+            child: data["type"] == "image"
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      data["mediaURL"],
+                      width: 200,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : data["type"] == "video"
+                ? Container(
+                    width: 200,
+                    height: 150,
+                    color: Colors.black12,
+                    child: const Icon(Icons.play_circle_fill, size: 50),
+                  )
+                : ChatBubble(
+                    message: data["messages"],
+                    isCurrentUser: isCurrentUser,
+                    isRead: data["isRead"] ?? false,
+                  ),
+            // child: ChatBubble(
+            //   message: data["messages"],
+            //   isCurrentUser: isCurrentUser,
+            //   isRead: data["isRead"] ?? false,
+            // ),
           ),
           Padding(
             padding: const EdgeInsets.only(left: 20, right: 20),
@@ -318,11 +339,10 @@ class _ChatPageState extends State<ChatPage> {
       child: Row(
         children: [
           IconButton(
-  icon: const Icon(Icons.attach_file),
-  onPressed: () => pickMedia(false), // pass true for video picker
-),
+            icon: const Icon(Icons.attach_file),
+            onPressed: () => pickMedia(false), // pass true for video picker
+          ),
           Expanded(
-            
             child: MyTextfield(
               hintText: "Type a message",
               obscureText: false,
