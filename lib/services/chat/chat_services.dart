@@ -158,17 +158,10 @@ class ChatServices {
   }
 
   //pick file
-  Future<XFile?> pickMedia({required bool isVideo}) async {
-    final picker = ImagePicker();
-    if (isVideo) {
-      return await picker.pickVideo(source: ImageSource.gallery);
-    } else {
-      return await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 50,
-      );
-    }
-  }
+ Future<XFile?> pickMedia() async {
+  final picker = ImagePicker();
+  return await picker.pickMedia();
+}
 
   //upload file to cloudinary and send as a message
 
@@ -214,7 +207,6 @@ class ChatServices {
       final Timestamp timeStamp = Timestamp.now();
 
       final cloudinary = CloudinaryPublic('geegypvd', "chat_app_preset");
-      print("Starting upload...");
       CloudinaryResponse response = await cloudinary.uploadFile(
         CloudinaryFile.fromFile(
           file.path,
@@ -224,7 +216,6 @@ class ChatServices {
               : CloudinaryResourceType.Image,
         ),
       );
-      print("Upload successful: ${response.secureUrl}");
 
       Message newMessage = Message(
         senderID: currentUserId,

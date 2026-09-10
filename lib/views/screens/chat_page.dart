@@ -29,9 +29,11 @@ class _ChatPageState extends State<ChatPage> {
   XFile? _pendingMedia;
   String? _pendingMediaType;
 
-  void pickMedia(bool isVideo) async {
-    final file = await _chatService.pickMedia(isVideo: isVideo);
+  void _pickMedia() async {
+    final file = await _chatService.pickMedia();
     if (file != null) {
+      final String? mimeType = file.mimeType;
+      final bool isVideo = mimeType != null && mimeType.startsWith("video");
       setState(() {
         _pendingMedia = file;
         _pendingMediaType = isVideo ? "video" : "image";
@@ -340,7 +342,7 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           IconButton(
             icon: const Icon(Icons.attach_file),
-            onPressed: () => pickMedia(false), // pass true for video picker
+            onPressed: () => _pickMedia(), // pass true for video picker
           ),
           Expanded(
             child: MyTextfield(
