@@ -1,17 +1,32 @@
-# chat_app
+# Mini Chat App
 
-A new Flutter project.
+A real-time chat app built with Flutter and Firebase.
+
+## Features
+- Firebase Authentication
+- Real-time messaging with Firestore
+- Online/offline presence
+- Typing indicators
+- Read receipts
+- Unread message counts
+- Message deletion
+- Profile pictures (Cloudinary)
+- User search
+- Push notifications (FCM)
+
+## Screenshots
+| Sign Up | Home / Search | Chat |
+|---------|----------------|------|
+| <img src="https://github.com/user-attachments/assets/1bcc9822-bfbd-4ee4-b727-cf9009e9a59f" width="250"/> | <img src="https://github.com/user-attachments/assets/e217becb-2311-490c-bc22-1ae4837f881f" width="250"/> | <img src="https://github.com/user-attachments/assets/ccbe8d54-7e9e-49ba-a43c-a15be128a497" width="250"/> |
+
+## Tech Stack
+Flutter, Dart, Firebase (Auth, Firestore, Realtime Database, Cloud Functions), FCM, Cloudinary, Provider
 
 ## Getting Started
+1. Clone the repo
+2. Run `flutter pub get`
+3. Add your own `firebase_options.dart` (see Firebase setup docs)
+4. Run `flutter run`
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Demo
+[Add video/APK link here once ready]
