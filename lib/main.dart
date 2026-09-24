@@ -37,9 +37,9 @@ Future<void> main() async {
     badge: true,
     sound: true,
   );
+
   try {
     String? token = await messaging.getToken();
-    
   } catch (e) {
     print("Failed to get FCM token: $e");
   }
@@ -54,8 +54,7 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
   // push notification initialization
-
-  // This widget is the root of your application.
+//root of the chat app
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(

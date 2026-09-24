@@ -342,7 +342,7 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           IconButton(
             icon: const Icon(Icons.attach_file),
-            onPressed: () => _pickMedia(), // pass true for video picker
+            onPressed: () => _pickMedia(), 
           ),
           Expanded(
             child: MyTextfield(
