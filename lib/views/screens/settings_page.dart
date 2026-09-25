@@ -33,7 +33,7 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Stack(
             children: [
               AnimatedContainer(
-                duration: Duration(seconds: 5),
+                duration: Duration(milliseconds: 700),
                 decoration: BoxDecoration(
                   color: isDarkMode ? Colors.lightGreenAccent : Colors.grey,
                   borderRadius: BorderRadius.circular(50.r),
@@ -53,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 top: 0,
                 bottom: 0,
                 left: isDarkMode ? 8 : width - 43,
-                duration: Duration(seconds: 1),
+                duration: Duration(milliseconds: 700),
                 child: Center(
                   child: Container(
                     decoration: BoxDecoration(

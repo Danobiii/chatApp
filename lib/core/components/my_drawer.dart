@@ -1,5 +1,6 @@
 import 'package:chat_app/core/routes/routes_name.dart';
 import 'package:chat_app/services/chat/auth_services.dart';
+import 'package:chat_app/views/screens/pfpDestinationScreen.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -47,6 +48,37 @@ class _MyDrawerState extends State<MyDrawer> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     //profile pic
+                    Hero(
+                      tag: 'pfp',
+                      child: GestureDetector(
+                        onTap: () {
+                          if (_profilePicUrl != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Pfpdestinationscreen(
+                                  imageUrl: _profilePicUrl!,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        child: CircleAvatar(
+                          radius: 40.r,
+                          backgroundImage: _profilePicUrl != null
+                              ? NetworkImage(_profilePicUrl!)
+                              : null,
+                          child: _profilePicUrl == null
+                              ? Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
                     GestureDetector(
                       onTap: () async {
                         String? url = await _authService.uploadPFP();
@@ -56,20 +88,10 @@ class _MyDrawerState extends State<MyDrawer> {
                           });
                         }
                       },
-                      child: CircleAvatar(
-                        radius: 40.r,
-                        backgroundImage: _profilePicUrl != null
-                            ? NetworkImage(_profilePicUrl!)
-                            : null,
-                        child: _profilePicUrl == null
-                            ? Icon(Icons.person, size: 40, color: Colors.white)
-                            : null,
+                      child: Text(
+                        "Tap to change Photo",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      "Tap to change Photo",
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),

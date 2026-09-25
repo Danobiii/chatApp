@@ -13,8 +13,14 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends State<RegisterPage>
+    with TickerProviderStateMixin {
   //email and password controllers
+  late AnimationController controller;
+  late AnimationController controller2;
+
+  late Animation<double> fadeOutAnimation;
+  late Animation<Offset> slideOutAnimation;
   bool passwordMatch = false;
   bool isUserTyping = false;
   final _emailController = TextEditingController();
@@ -22,12 +28,34 @@ class _RegisterPageState extends State<RegisterPage> {
   final _passwordController = TextEditingController();
 
   final _confirmPasswordController = TextEditingController();
+  @override
+  void initState() {
+    controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    )..forward();
+    controller2 = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    )..forward();
+    super.initState();
+    fadeOutAnimation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeOut,
+    );
+    slideOutAnimation = Tween<Offset>(
+      begin: const Offset(1, 0),
+      end: const Offset(0, 0),
+    ).animate(CurvedAnimation(parent: controller2, curve: Curves.easeOut));
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _confirmPasswordController.dispose();
     _passwordController.dispose();
+    controller.dispose();
+    controller2.dispose();
     super.dispose();
   }
 
@@ -80,90 +108,117 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.message, size: 60.sp, color: registerTheme.primary),
-            Text(
-              "Hi, Create an Account",
-              style: TextStyle(
-                fontSize: 16.sp,
-                color: registerTheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 30.h),
-            MyTextfield(
-              hintText: 'Email',
-              obscureText: false,
-              controller: _emailController,
-            ),
-            SizedBox(height: 10.h),
-
-            MyTextfield(
-              hintText: 'Password',
-              obscureText: true,
-              controller: _passwordController,
-            ),
-            SizedBox(height: 20.h),
-            MyTextfield(
-              onChanged: (value) {
-                isUserTyping = true;
-                setState(() {
-                  passwordMatch =
-                      _passwordController.text.trim() ==
-                      _confirmPasswordController.text.trim();
-                });
-              },
-              hintText: 'Confirm password',
-              obscureText: true,
-              controller: _confirmPasswordController,
-            ),
-            SizedBox(height: 10.h),
-            if (!isUserTyping)
-              const SizedBox()
-            else
-              Text(
-                passwordMatch ? "Password Match" : "Password Mismatch",
-                style: TextStyle(
-                  color: passwordMatch ? Colors.green : Colors.red,
-                ),
-              ),
-            // isUserTyping
-            //     ? SizedBox()
-            //     : Text(
-            //         passwordMatch ? "Password match" : "Password mismatch",
-            //         style: TextStyle(
-            //           color: passwordMatch ? Colors.green : Colors.red,
-            //         ),
-            //       ),
-            SizedBox(height: 20.h),
-
-            MyButton(
-              text: 'Sign up',
-              onTap: () {
-                print("button clicked");
-
-                signUp(context);
-              },
-            ),
-            SizedBox(height: 20.h),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Already have an account?",
-                  style: TextStyle(color: registerTheme.primary),
-                ),
-                GestureDetector(
-                  onTap: widget.onTap,
-                  child: Text(
-                    " Log in.",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: registerTheme.primary,
+            AnimatedBuilder(
+              animation: controller,
+              builder: (BuildContext context, Widget? child) {
+                return Transform.scale(
+                  scale: controller.value,
+                  child: FadeTransition(
+                    opacity: fadeOutAnimation,
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.message,
+                          size: 60.sp,
+                          color: registerTheme.primary,
+                        ),
+                        Text(
+                          "Hi, Create an Account",
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: registerTheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                );
+              },
+            ),
+
+            SizedBox(height: 30.h),
+            SlideTransition(
+              position: slideOutAnimation,
+              child: Column(
+                children: [
+                  MyTextfield(
+                    hintText: 'Email',
+                    obscureText: false,
+                    controller: _emailController,
+                  ),
+                  SizedBox(height: 10.h),
+
+                  MyTextfield(
+                    hintText: 'Password',
+                    obscureText: true,
+                    controller: _passwordController,
+                  ),
+                  SizedBox(height: 20.h),
+                  MyTextfield(
+                    onChanged: (value) {
+                      isUserTyping = true;
+                      setState(() {
+                        passwordMatch =
+                            _passwordController.text.trim() ==
+                            _confirmPasswordController.text.trim();
+                      });
+                    },
+                    hintText: 'Confirm password',
+                    obscureText: true,
+                    controller: _confirmPasswordController,
+                  ),
+                  SizedBox(height: 10.h),
+                  if (!isUserTyping)
+                    const SizedBox()
+                  else
+                    Text(
+                      passwordMatch ? "Password Match" : "Password Mismatch",
+                      style: TextStyle(
+                        color: passwordMatch ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  // isUserTyping
+                  //     ? SizedBox()
+                  //     : Text(
+                  //         passwordMatch ? "Password match" : "Password mismatch",
+                  //         style: TextStyle(
+                  //           color: passwordMatch ? Colors.green : Colors.red,
+                  //         ),
+                  //       ),
+                  SizedBox(height: 20.h),
+
+                  MyButton(
+                    text: 'Sign up',
+                    onTap: () {
+                      print("button clicked");
+
+                      signUp(context);
+                    },
+                  ),
+                  SizedBox(height: 20.h),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Already have an account?",
+                        style: TextStyle(color: registerTheme.primary),
+                      ),
+                      GestureDetector(
+                        onTap: widget.onTap,
+                        child: Text(
+                          " Log in.",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: registerTheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
