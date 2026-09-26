@@ -52,7 +52,7 @@ class _SettingsPageState extends State<SettingsPage> {
               AnimatedPositioned(
                 top: 0,
                 bottom: 0,
-                left: isDarkMode ? 8 : width - 43,
+                right: isDarkMode ? 8 : width - 43,
                 duration: Duration(milliseconds: 700),
                 child: Center(
                   child: Container(

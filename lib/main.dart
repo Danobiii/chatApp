@@ -1,4 +1,6 @@
 import 'package:chat_app/core/routes/chat_app_routes.dart';
+import 'package:chat_app/core/themes/dark_mode.dart';
+import 'package:chat_app/core/themes/light_mode.dart';
 import 'package:chat_app/core/themes/theme_provider.dart';
 import 'package:chat_app/firebase_options.dart';
 import 'package:chat_app/services/chat/auth_services.dart';
@@ -8,6 +10,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:flutter/foundation.dart' show kDebugMode;
@@ -16,6 +19,8 @@ import 'package:provider/provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final prefs = await SharedPreferences.getInstance();
+  final isDarkMode = prefs.getBool('isDarkMode') ?? false;
 
   // if (kDebugMode) {
   //   FirebaseFirestore.instance.useFirestoreEmulator('10.0.2.2', 8080);
@@ -45,7 +50,8 @@ Future<void> main() async {
   }
   runApp(
     ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+      create: (context) =>
+          ThemeProvider()..themeData = isDarkMode ? darkMode : lightMode,
       child: MyApp(),
     ),
   );
@@ -54,7 +60,7 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
   // push notification initialization
-//root of the chat app
+  //root of the chat app
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(

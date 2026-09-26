@@ -9,7 +9,7 @@ class Pfpdestinationscreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 1, 0, 0),
 
         // elevation: 0,
       ),

@@ -18,7 +18,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   late AnimationController controller2;
 
   late Animation<double> fadeOutAnimation;
-  late Animation<Offset> slideOutAnimation;
+  late Animation<Offset> slideInAnimation;
 
   @override
   void initState() {
@@ -26,17 +26,17 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
     controller = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 2),
+      duration: Duration(seconds: 1),
     )..forward();
     controller2 = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 2),
+      duration: Duration(seconds: 1),
     )..forward();
     fadeOutAnimation = CurvedAnimation(
       parent: controller,
       curve: Curves.easeOut,
     );
-    slideOutAnimation = Tween<Offset>(
+    slideInAnimation = Tween<Offset>(
       begin: const Offset(0, 1),
       end: const Offset(0, 0),
     ).animate(CurvedAnimation(parent: controller2, curve: Curves.easeOut));
@@ -126,7 +126,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
             SizedBox(height: 30.h),
             SlideTransition(
-              position: slideOutAnimation,
+              position: slideInAnimation,
               child: Container(
                 padding: EdgeInsets.all(15.w),
 

@@ -32,11 +32,11 @@ class _RegisterPageState extends State<RegisterPage>
   void initState() {
     controller = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 2),
+      duration: Duration(seconds: 1),
     )..forward();
     controller2 = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 2),
+      duration: Duration(seconds: 1),
     )..forward();
     super.initState();
     fadeOutAnimation = CurvedAnimation(
