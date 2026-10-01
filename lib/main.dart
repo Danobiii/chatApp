@@ -59,8 +59,7 @@ Future<void> main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-  // push notification initialization
-  //root of the chat app
+
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ChatBubble extends StatelessWidget {
@@ -26,8 +27,15 @@ class ChatBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
 
         children: [
-          Text(message),
-
+          GestureDetector(
+            onLongPress: () async {
+              await Clipboard.setData(ClipboardData(text: message));
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text("copied")));
+            },
+            child: Text(message),
+          ),
           if (isCurrentUser)
             Icon(
               isRead ? Icons.done_all : Icons.done,
