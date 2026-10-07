@@ -208,4 +208,23 @@ class ChatServices {
       print("sendMediaMessage error: $e");
     }
   }
+
+  Future<void> emojiReactions({
+    required String messageId,
+    required String chatRoomID,
+    required String emoji,
+    required String? currentReaction,
+  }) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    await FirebaseFirestore.instance
+        .collection("chat_rooms")
+        .doc(chatRoomID)
+        .collection("messages")
+        .doc(messageId)
+        .update({
+          "reactions.$uid": currentReaction == emoji
+              ? FieldValue.delete()
+              : emoji,
+        });
+  }
 }

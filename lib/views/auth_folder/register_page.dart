@@ -3,6 +3,7 @@ import 'package:chat_app/core/components/my_textfield.dart';
 import 'package:chat_app/services/chat/auth_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lottie/lottie.dart';
 
 class RegisterPage extends StatefulWidget {
   final void Function()? onTap;
@@ -117,13 +118,23 @@ class _RegisterPageState extends State<RegisterPage>
                     opacity: fadeOutAnimation,
                     child: Column(
                       children: [
-                        Icon(
-                          Icons.message,
-                          size: 60.sp,
-                          color: registerTheme.primary,
+                        Padding(
+                          padding: EdgeInsets.only(left: 50.w),
+                          child: Lottie.asset(
+                            "assets/images/lottie/roborthi.json",
+                            width: 200.w,
+                            height: 200.h,
+                            fit: BoxFit.contain,
+                          ),
                         ),
+
+                        // Icon(
+                        //   Icons.message,
+                        //   size: 60.sp,
+                        //   color: registerTheme.primary,
+                        // ),
                         Text(
-                          "Hi, Create an Account",
+                          "Hello, Create an Account",
                           style: TextStyle(
                             fontSize: 16.sp,
                             color: registerTheme.primary,

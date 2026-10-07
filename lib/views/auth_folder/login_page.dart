@@ -3,6 +3,7 @@ import 'package:chat_app/core/components/my_textfield.dart';
 import 'package:chat_app/services/chat/auth_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lottie/lottie.dart';
 
 class LoginPage extends StatefulWidget {
   final void Function()? onTap;
@@ -104,10 +105,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                     opacity: fadeOutAnimation,
                     child: Column(
                       children: [
-                        Icon(
-                          Icons.message,
-                          size: 60.sp,
-                          color: loginTheme.primary,
+                        Lottie.asset(
+                          "assets/images/lottie/welcome2.json",
+                          width: 200.w,
+                          height: 200.h,
                         ),
                         Text(
                           "Welcome Back!",

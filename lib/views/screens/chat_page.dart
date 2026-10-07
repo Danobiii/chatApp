@@ -1,11 +1,13 @@
 import 'package:chat_app/core/components/chat_bubble.dart';
 import 'package:chat_app/core/components/my_textfield.dart';
+import 'package:chat_app/models/message.dart';
 import 'package:chat_app/services/chat/chat_services.dart';
 import 'package:chat_app/services/chat/auth_services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:io';
-
 import 'package:image_picker/image_picker.dart';
 
 class ChatPage extends StatefulWidget {
@@ -19,6 +21,35 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  Widget _buildReactions(Map<String, dynamic> data) {
+    final reactions = Map<String, dynamic>.from(data['reactions'] ?? {});
+    if (reactions.isEmpty) return const SizedBox.shrink();
+
+    final counts = <String, int>{};
+    for (final emoji in reactions.values) {
+      counts[emoji as String] = (counts[emoji] ?? 0) + 1;
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Wrap(
+        spacing: 4,
+        children: counts.entries.map((e) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade800,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              e.value > 1 ? '${e.key} ${e.value}' : e.key,
+              style: const TextStyle(fontSize: 12),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   //text controller
   final _messageController = TextEditingController();
 
@@ -217,43 +248,173 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           GestureDetector(
             onLongPress: () {
-              if (isCurrentUser) {
-                //show delete dialog
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text('Delete message'),
-                    content: Text(
-                      "Are you sure you want to delete this message?",
-                    ),
-                    actions: [
-                      //cancel button
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text("Cancel"),
-                      ),
-                      //delete button
-                      TextButton(
-                        onPressed: () async {
-                          List<String> ids = [
-                            _authServices.getCurrentuser()!.uid,
-                            widget.receiverID,
-                          ];
-                          ids.sort();
-                          String chatRoomID = ids.join("_");
-                          // delete message
-                          await _chatService.deleteMessage(doc.id, chatRoomID);
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          "Delete",
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
+              final data = doc.data() as Map<String, dynamic>;
+              final reactions = Map<String, dynamic>.from(
+                data["reactions"] ?? {},
+              );
+              final myUid = _authServices.getCurrentuser()!.uid;
+              final myReactions = reactions[myUid] as String?;
+              final ids = [myUid, widget.receiverID]..sort();
+              final chatRoomID = ids.join("_");
+              showDialog(
+                context: context,
+                builder: (dialogContext) => Dialog(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                );
-              }
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+
+                      children: [
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 8,
+                          children:
+                              [
+                                '👍',
+                                '❤️',
+                                '😂',
+                                '😮',
+                                '😢',
+                                '🙏',
+                                '🔥',
+                                '🎉',
+                              ].map((emoji) {
+                                final selected = emoji == myReactions;
+                                return GestureDetector(
+                                  onTap: () async {
+                                    Navigator.pop(dialogContext);
+                                    await _chatService.emojiReactions(
+                                      messageId: doc.id,
+                                      chatRoomID: chatRoomID,
+                                      emoji: emoji,
+                                      currentReaction: myReactions,
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: selected
+                                          ? Colors.green.withOpacity(0.25)
+                                          : Colors.transparent,
+                                    ),
+                                    child: Text(
+                                      emoji,
+                                      style: const TextStyle(fontSize: 28),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                        ),
+                        const Divider(height: 24),
+
+                        //cancel button
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.cancel),
+                              SizedBox(width: 8),
+                              Text("Cancel"),
+                            ],
+                          ),
+                        ),
+
+                        //copy button
+                        TextButton(
+                          onPressed: () async {
+                            await Clipboard.setData(
+                              ClipboardData(text: data["messages"]),
+                            );
+                            if (!context.mounted) return;
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Copied")),
+                            );
+                            Navigator.pop(context);
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.copy),
+                              SizedBox(width: 8),
+                              Text("Copy"),
+                            ],
+                          ),
+                        ),
+                        //delete button
+                        if (isCurrentUser)
+                          TextButton(
+                            onPressed: () {
+                              if (!isCurrentUser) return;
+                              Navigator.pop(context);
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text("Delete Message?"),
+                                  content: Text(
+                                    "Are you sure you want to delete message?",
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text("Cancel"),
+                                    ),
+                                    if (isCurrentUser) ...[
+                                      TextButton(
+                                        onPressed: () async {
+                                          List<String> ids = [
+                                            _authServices.getCurrentuser()!.uid,
+                                            widget.receiverID,
+                                          ];
+                                          ids.sort();
+                                          String chatRoomID = ids.join("_");
+                                          //delete message
+                                          if (isCurrentUser) {
+                                            await _chatService.deleteMessage(
+                                              doc.id,
+                                              chatRoomID,
+                                            );
+                                          }
+                                          if (!context.mounted) return;
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text(
+                                          "Delete",
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              );
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+
+                              children: [
+                                Icon(Icons.delete),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  "Delete",
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
             },
             child: data["type"] == "image"
                 ? ClipRRect(
@@ -276,12 +437,9 @@ class _ChatPageState extends State<ChatPage> {
                     isCurrentUser: isCurrentUser,
                     isRead: data["isRead"] ?? false,
                   ),
-            // child: ChatBubble(
-            //   message: data["messages"],
-            //   isCurrentUser: isCurrentUser,
-            //   isRead: data["isRead"] ?? false,
-            // ),
           ),
+          _buildReactions(data),
+
           Padding(
             padding: const EdgeInsets.only(left: 20, right: 20),
             child: Text(
@@ -342,7 +500,7 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           IconButton(
             icon: const Icon(Icons.attach_file),
-            onPressed: () => _pickMedia(), 
+            onPressed: () => _pickMedia(),
           ),
           Expanded(
             child: MyTextfield(
