@@ -106,7 +106,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                     child: Column(
                       children: [
                         Lottie.asset(
-                          "assets/images/lottie/welcome2.json",
+                          "assets/images/lottie/hi.json",
                           width: 200.w,
                           height: 200.h,
                         ),
