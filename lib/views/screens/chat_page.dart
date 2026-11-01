@@ -21,6 +21,184 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  bool _isSameday(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  String _previewText(Map<String, dynamic> data) {
+    if (data["type"] == "image") return "photo";
+    if (data["type"] == "video") return "video";
+    return (data["messages"] ?? "").toString();
+  }
+
+  String _dateLabel(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(date.year, date.month, date.day);
+    final diff = today.difference(day).inDays;
+
+    if (diff == 0) {
+      return "Today";
+    }
+    if (diff == 1) {
+      return "Yesterday";
+    }
+    const months = [
+      "Jan",
+      "Feb",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "Nov",
+      "Dec",
+    ];
+    return "${date.day}, ${months[date.month - 1]}, ${date.year}";
+  }
+
+  Widget _buildDateSeperation(String label) {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 53, 51, 51),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Map<String, dynamic>? _replyingTo;
+  Widget _buildReplyWidget() {
+    final reply = _replyingTo;
+    if (reply == null) return SizedBox.shrink();
+    final myUid = _authServices.getCurrentuser()!.uid;
+    final who = reply["senderID"] == myUid ? "yourself" : widget.receiverEmail;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade800,
+        border: const Border(left: BorderSide(color: Colors.green, width: 4)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Replying to $who",
+                  style: const TextStyle(
+                    color: Colors.green,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  reply["text"],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _replyingTo = null;
+              });
+            },
+            icon: const Icon(Icons.close, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReplyQuote(Map<String, dynamic> data) {
+    if (data["replyToId"] == null) return const SizedBox.shrink();
+
+    final myUid = _authServices.getCurrentuser()!.uid;
+    final who = data["replyToSenderID"] == myUid ? "You" : widget.receiverEmail;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade800,
+        border: const Border(left: BorderSide(color: Colors.green, width: 3)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            who,
+            style: const TextStyle(
+              color: Colors.green,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            data["replyToText"] ?? "",
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+  //   Widget _buildReplyQuote(Map<String, dynamic> data) {
+  //   if (data["replyToId"] == null) return const SizedBox.shrink();
+
+  //   final myUid = _authServices.getCurrentuser()!.uid;
+  //   final who = data["replyToSenderID"] == myUid ? "You" : widget.receiverEmail;
+
+  //   return Container(
+  //     margin: const EdgeInsets.only(bottom: 2),
+  //     padding: const EdgeInsets.all(8),
+  //     decoration: BoxDecoration(
+  //       color: Colors.grey.shade800,
+  //       border: const Border(
+  //         left: BorderSide(color: Colors.green, width: 3),
+  //       ),
+  //     ),
+  //     child: Column(
+  //       mainAxisSize: MainAxisSize.min,
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text(
+  //           who,
+  //           style: const TextStyle(
+  //             color: Colors.green,
+  //             fontSize: 11,
+  //             fontWeight: FontWeight.bold,
+  //           ),
+  //         ),
+  //         Text(
+  //           data["replyToText"] ?? "",
+  //           maxLines: 2,
+  //           overflow: TextOverflow.ellipsis,
+  //           style: const TextStyle(color: Colors.white, fontSize: 12),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
   Widget _buildReactions(Map<String, dynamic> data) {
     final reactions = Map<String, dynamic>.from(data['reactions'] ?? {});
     if (reactions.isEmpty) return const SizedBox.shrink();
@@ -144,9 +322,12 @@ class _ChatPageState extends State<ChatPage> {
   //func to send mesage
   void sendMessage() async {
     if (_messageController.text.isNotEmpty) {
+      final reply = _replyingTo;
+      setState(() => _replyingTo = null);
       await _chatService.sendMessage(
         widget.receiverID,
         _messageController.text,
+        replyTo: reply,
       );
 
       //clear text controller
@@ -196,6 +377,8 @@ class _ChatPageState extends State<ChatPage> {
             },
           ),
           _buildMediaPreview(),
+          _buildReplyWidget(), // new
+
           _buildUserInput(),
         ],
       ),
@@ -204,8 +387,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessageList() {
     String senderID = _authServices.getCurrentuser()!.uid;
-    // print("senderID: $senderID");
-    // print("receiverID: ${widget.receiverID}");
+
     return StreamBuilder(
       stream: _chatService.getMessages(widget.receiverID, senderID),
       builder: (context, snapshot) {
@@ -222,11 +404,39 @@ class _ChatPageState extends State<ChatPage> {
         ids.sort();
         String chatRoomID = ids.join("_");
         _chatService.markMessagesAsRead(chatRoomID, senderID);
-        return ListView(
+        final docs = snapshot.data!.docs;
+        return ListView.builder(
           controller: _scrollController,
-          children: snapshot.data!.docs
-              .map((doc) => _buildMessageItem(doc))
-              .toList(),
+          itemCount: docs.length,
+
+          itemBuilder: (BuildContext context, int index) {
+            final doc = docs[index];
+            final data = doc.data() as Map<String, dynamic>;
+
+            final date = (data["timeStamp"] as Timestamp?)?.toDate();
+            var showSeperator = false;
+            if (date != null) {
+              if (index == 0) {
+                showSeperator = true;
+              } else {
+                final prev = docs[index - 1].data() as Map<String, dynamic>;
+                final prevDate = (prev["timeStamp"] as Timestamp?)?.toDate();
+                showSeperator = prevDate == null || !_isSameday(date, prevDate);
+              }
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showSeperator && date != null)
+                  _buildDateSeperation(_dateLabel(date)),
+                _buildMessageItem(doc),
+              ],
+            );
+          },
+
+          // children: snapshot.data!.docs
+          //     .map((doc) => _buildMessageItem(doc))
+          //     .toList(),
         );
       },
     );
@@ -246,6 +456,7 @@ class _ChatPageState extends State<ChatPage> {
             ? CrossAxisAlignment.end
             : CrossAxisAlignment.start,
         children: [
+          _buildReplyQuote(data),
           GestureDetector(
             onLongPress: () {
               final data = doc.data() as Map<String, dynamic>;
@@ -312,7 +523,28 @@ class _ChatPageState extends State<ChatPage> {
                               }).toList(),
                         ),
                         const Divider(height: 24),
-
+                        //reply button
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(dialogContext);
+                            setState(() {
+                              _replyingTo = {
+                                "id": doc.id,
+                                "senderID": data["senderID"],
+                                "text": _previewText(data),
+                              };
+                            });
+                            myFocusNode.requestFocus();
+                          },
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.reply),
+                              SizedBox(width: 8),
+                              Text("Reply"),
+                            ],
+                          ),
+                        ),
                         //cancel button
                         TextButton(
                           onPressed: () => Navigator.pop(context),

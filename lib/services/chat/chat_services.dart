@@ -41,8 +41,13 @@ class ChatServices {
   }
 
   //send message
-  Future<void> sendMessage(String receiverID, message) async {
+  Future<void> sendMessage(
+    String receiverID,
+    String message, {
+    Map<String, dynamic>? replyTo,
+  }) async {
     //get current user info
+
     final String currentUserId = _auth.currentUser!.uid;
     //string and !
     final String currentUserEmail = _auth.currentUser!.email!;
@@ -64,13 +69,21 @@ class ChatServices {
     List<String> ids = [currentUserId, receiverID];
     ids.sort();
     String chatRoomID = ids.join("_");
+    final messageData = newMessage.toMap();
+    if (replyTo != null) {
+      messageData.addAll({
+        "replyToId": replyTo["id"],
+        "replyToSenderID": replyTo["senderID"],
+        "replyToText": replyTo["text"],
+      });
+    }
+
     //add new messages to database
     await _firestore
         .collection("chat_rooms")
         .doc(chatRoomID)
         .collection("messages")
-        .add(newMessage.toMap());
-    print("send RoomId: $chatRoomID");
+        .add(messageData);
   }
 
   //get messages
