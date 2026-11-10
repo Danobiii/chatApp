@@ -60,6 +60,54 @@ class _ChatPageState extends State<ChatPage> {
     return "${date.day}, ${months[date.month - 1]}, ${date.year}";
   }
 
+  void _pinMessageToTheTop(
+    DocumentSnapshot doc,
+    String message,
+    String chatRomID,
+  ) async {
+    setState(() {});
+  }
+
+  void _showEditDialog(
+    DocumentSnapshot doc,
+    String currentText,
+    String chatRoomID,
+  ) async {
+    final editController = TextEditingController(text: currentText);
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text("Edit message"),
+        content: TextField(
+          controller: editController,
+          autofocus: true,
+          maxLines: null,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              final newText = editController.text.trim();
+              Navigator.pop(dialogContext);
+              if (newText.isEmpty || newText == currentText) return;
+
+              await _chatService.editMessage(
+                messageId: doc.id,
+                chatRoomID: chatRoomID,
+                newText: newText,
+              );
+            },
+            child: Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDateSeperation(String label) {
     return Center(
       child: Container(
@@ -82,7 +130,7 @@ class _ChatPageState extends State<ChatPage> {
     final reply = _replyingTo;
     if (reply == null) return SizedBox.shrink();
     final myUid = _authServices.getCurrentuser()!.uid;
-    final who = reply["senderID"] == myUid ? "yourself" : widget.receiverEmail;
+    final who = reply["senderID"] == myUid ? "You" : widget.receiverEmail;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -98,7 +146,7 @@ class _ChatPageState extends State<ChatPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Replying to $who",
+                  who,
                   style: const TextStyle(
                     color: Colors.green,
                     fontSize: 12,
@@ -323,12 +371,13 @@ class _ChatPageState extends State<ChatPage> {
   void sendMessage() async {
     if (_messageController.text.isNotEmpty) {
       final reply = _replyingTo;
-      setState(() => _replyingTo = null);
       await _chatService.sendMessage(
         widget.receiverID,
         _messageController.text,
         replyTo: reply,
       );
+      if (!mounted) return;
+      setState(() => _replyingTo = null);
 
       //clear text controller
       _messageController.clear();
@@ -444,6 +493,9 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessageItem(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    final isEdited = data["edited"] == true;
+    final isMessagePinned = data["isPinned"] == true;
+
     bool isCurrentUser =
         data["senderID"] == _authServices.getCurrentuser()!.uid;
     var alignment = isCurrentUser
@@ -557,7 +609,40 @@ class _ChatPageState extends State<ChatPage> {
                             ],
                           ),
                         ),
-
+                        if (isCurrentUser &&
+                            data["type"] != "image" &&
+                            data["type"] != "video")
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(dialogContext);
+                              _showEditDialog(
+                                doc,
+                                (data["messages"] ?? ""),
+                                chatRoomID,
+                              );
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [Icon(Icons.edit), Text("Edit")],
+                            ),
+                          ),
+                        TextButton(
+                          onPressed: () async {
+                            Navigator.pop(dialogContext);
+                            await _chatService.pinMessage(
+                              messageId: doc.id,
+                              chatRoomID: chatRoomID,
+                              pinState: !isMessagePinned,
+                            );
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.push_pin),
+                              Text(isMessagePinned ? "Unpin" : "Pin"),
+                            ],
+                          ),
+                        ),
                         //copy button
                         TextButton(
                           onPressed: () async {
@@ -671,11 +756,10 @@ class _ChatPageState extends State<ChatPage> {
                   ),
           ),
           _buildReactions(data),
-
           Padding(
             padding: const EdgeInsets.only(left: 20, right: 20),
             child: Text(
-              _formatTimestamp(data["timeStamp"]),
+              "${isEdited ? "edited." : ""} ${_formatTimestamp(data["timeStamp"])}",
               style: const TextStyle(fontSize: 10, color: Colors.grey),
             ),
           ),

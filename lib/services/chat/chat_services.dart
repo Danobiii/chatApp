@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:chat_app/core/messagefields.dart';
 
 class ChatServices {
   // get instance of firestore
@@ -229,7 +230,7 @@ class ChatServices {
     required String? currentReaction,
   }) async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
-    await FirebaseFirestore.instance
+    await _firestore
         .collection("chat_rooms")
         .doc(chatRoomID)
         .collection("messages")
@@ -239,5 +240,31 @@ class ChatServices {
               ? FieldValue.delete()
               : emoji,
         });
+  }
+
+  Future<void> editMessage({
+    required String messageId,
+    required String chatRoomID,
+    required String newText,
+  }) async {
+    await _firestore
+        .collection("chat_rooms")
+        .doc(chatRoomID)
+        .collection("messages")
+        .doc((messageId))
+        .update({"messages": newText, "edited": true});
+  }
+
+  Future<void> pinMessage({
+    required String messageId,
+    required String chatRoomID,
+    required bool pinState,
+  }) async {
+    await _firestore
+        .collection("chat_rooms")
+        .doc(chatRoomID)
+        .collection("messages")
+        .doc(messageId)
+        .update({"isPinned": pinState,});
   }
 }
