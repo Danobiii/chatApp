@@ -210,43 +210,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
-  //   Widget _buildReplyQuote(Map<String, dynamic> data) {
-  //   if (data["replyToId"] == null) return const SizedBox.shrink();
 
-  //   final myUid = _authServices.getCurrentuser()!.uid;
-  //   final who = data["replyToSenderID"] == myUid ? "You" : widget.receiverEmail;
-
-  //   return Container(
-  //     margin: const EdgeInsets.only(bottom: 2),
-  //     padding: const EdgeInsets.all(8),
-  //     decoration: BoxDecoration(
-  //       color: Colors.grey.shade800,
-  //       border: const Border(
-  //         left: BorderSide(color: Colors.green, width: 3),
-  //       ),
-  //     ),
-  //     child: Column(
-  //       mainAxisSize: MainAxisSize.min,
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         Text(
-  //           who,
-  //           style: const TextStyle(
-  //             color: Colors.green,
-  //             fontSize: 11,
-  //             fontWeight: FontWeight.bold,
-  //           ),
-  //         ),
-  //         Text(
-  //           data["replyToText"] ?? "",
-  //           maxLines: 2,
-  //           overflow: TextOverflow.ellipsis,
-  //           style: const TextStyle(color: Colors.white, fontSize: 12),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
   Widget _buildReactions(Map<String, dynamic> data) {
     final reactions = Map<String, dynamic>.from(data['reactions'] ?? {});
     if (reactions.isEmpty) return const SizedBox.shrink();
@@ -454,38 +418,55 @@ class _ChatPageState extends State<ChatPage> {
         String chatRoomID = ids.join("_");
         _chatService.markMessagesAsRead(chatRoomID, senderID);
         final docs = snapshot.data!.docs;
-        return ListView.builder(
-          controller: _scrollController,
-          itemCount: docs.length,
+        final pinnedDocs = docs.where((d) {
+          final m = d.data() as Map<String, dynamic>;
+          return m["isPinned"] == true;
+        }).toList();
 
-          itemBuilder: (BuildContext context, int index) {
-            final doc = docs[index];
-            final data = doc.data() as Map<String, dynamic>;
+        final latestPinned = pinnedDocs.isEmpty ? null : pinnedDocs.last;
+        return Column(
+          children: [
+            if (latestPinned != null)
+              _buildPinnedBanner(latestPinned.data() as Map<String, dynamic>),
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                itemCount: docs.length,
 
-            final date = (data["timeStamp"] as Timestamp?)?.toDate();
-            var showSeperator = false;
-            if (date != null) {
-              if (index == 0) {
-                showSeperator = true;
-              } else {
-                final prev = docs[index - 1].data() as Map<String, dynamic>;
-                final prevDate = (prev["timeStamp"] as Timestamp?)?.toDate();
-                showSeperator = prevDate == null || !_isSameday(date, prevDate);
-              }
-            }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (showSeperator && date != null)
-                  _buildDateSeperation(_dateLabel(date)),
-                _buildMessageItem(doc),
-              ],
-            );
-          },
+                itemBuilder: (BuildContext context, int index) {
+                  final doc = docs[index];
+                  final data = doc.data() as Map<String, dynamic>;
 
-          // children: snapshot.data!.docs
-          //     .map((doc) => _buildMessageItem(doc))
-          //     .toList(),
+                  final date = (data["timeStamp"] as Timestamp?)?.toDate();
+                  var showSeperator = false;
+                  if (date != null) {
+                    if (index == 0) {
+                      showSeperator = true;
+                    } else {
+                      final prev =
+                          docs[index - 1].data() as Map<String, dynamic>;
+                      final prevDate = (prev["timeStamp"] as Timestamp?)
+                          ?.toDate();
+                      showSeperator =
+                          prevDate == null || !_isSameday(date, prevDate);
+                    }
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (showSeperator && date != null)
+                        _buildDateSeperation(_dateLabel(date)),
+                      _buildMessageItem(doc),
+                    ],
+                  );
+                },
+
+                // children: snapshot.data!.docs
+                //     .map((doc) => _buildMessageItem(doc))
+                //     .toList(),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -758,9 +739,20 @@ class _ChatPageState extends State<ChatPage> {
           _buildReactions(data),
           Padding(
             padding: const EdgeInsets.only(left: 20, right: 20),
-            child: Text(
-              "${isEdited ? "edited." : ""} ${_formatTimestamp(data["timeStamp"])}",
-              style: const TextStyle(fontSize: 10, color: Colors.grey),
+
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+
+              children: [
+                if (isMessagePinned) ...[
+                  const Icon(Icons.push_pin, size: 12, color: Colors.grey),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  "${isEdited ? "edited." : ""}  ${_formatTimestamp(data["timeStamp"])}",
+                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                ),
+              ],
             ),
           ),
         ],
@@ -771,6 +763,26 @@ class _ChatPageState extends State<ChatPage> {
   String _formatTimestamp(Timestamp timeStamp) {
     DateTime dateTime = timeStamp.toDate();
     return "${dateTime.hour.toString().padLeft(2, "0")}:${dateTime.minute.toString().padLeft(2, "0")}";
+  }
+
+  Widget _buildPinnedBanner(Map<String, dynamic> data) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      color: Colors.grey.shade800,
+      child: Row(
+        children: [
+          const Icon(Icons.push_pin, size: 16, color: Colors.black),
+          Expanded(
+            child: Text(
+              _previewText(data),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildMediaPreview() {
