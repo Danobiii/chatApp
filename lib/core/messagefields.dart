@@ -6,4 +6,9 @@ class MessageFields {
   static const replyToId = 'replyToId';
   static const replyToSenderID = 'replyToSenderID';
   static const replyToText = 'replyToText';
+  static const edited = 'edited';
+  static const isPinned = 'isPinned';
+  static const isTyping = "isTyping";
+  static const isRead = "isRead";
+  static const receiverID = "receiverID";
 }

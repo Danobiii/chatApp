@@ -73,9 +73,9 @@ class ChatServices {
     final messageData = newMessage.toMap();
     if (replyTo != null) {
       messageData.addAll({
-        "replyToId": replyTo["id"],
-        "replyToSenderID": replyTo["senderID"],
-        "replyToText": replyTo["text"],
+        MessageFields.replyToId: replyTo["id"],
+        MessageFields.replyToSenderID: replyTo["senderID"],
+        MessageFields.replyToText: replyTo["text"],
       });
     }
 
@@ -93,7 +93,7 @@ class ChatServices {
 
     ids.sort();
     String chatRoomID = ids.join("_");
-    print("Get roomID: $chatRoomID");
+    // print("Get roomID: $chatRoomID");
 
     return _firestore
         .collection("chat_rooms")
@@ -114,7 +114,7 @@ class ChatServices {
         .child('typing')
         .child(chatRoomID)
         .child(userUID);
-    await userTypingStatus.update({"isTyping": isTyping});
+    await userTypingStatus.update({MessageFields.isTyping: isTyping});
   }
 
   //function that reads from database
@@ -128,7 +128,7 @@ class ChatServices {
         .map((event) {
           if (event.snapshot.exists) {
             Map status = event.snapshot.value as Map;
-            return status['isTyping'] ?? false;
+            return status[MessageFields.isTyping] ?? false;
           }
           return false;
         });
@@ -142,12 +142,12 @@ class ChatServices {
         .collection("chat_rooms")
         .doc(chatRoomID)
         .collection("messages")
-        .where("isRead", isEqualTo: false)
-        .where("receiverID", isEqualTo: currentUserID)
+        .where(MessageFields.isRead, isEqualTo: false)
+        .where(MessageFields.receiverID, isEqualTo: currentUserID)
         .get();
 
     for (var doc in unreadMessages.docs) {
-      await doc.reference.update({"isRead": true});
+      await doc.reference.update({MessageFields.isRead: true});
     }
   }
 
@@ -165,8 +165,8 @@ class ChatServices {
         .collection("chat_rooms")
         .doc(chatRoomID)
         .collection("messages")
-        .where("isRead", isEqualTo: false)
-        .where("receiverID", isEqualTo: currentUserID)
+        .where(MessageFields.isRead, isEqualTo: false)
+        .where(MessageFields.receiverID, isEqualTo: currentUserID)
         .snapshots()
         .map((snapshot) => snapshot.docs.length);
   }
@@ -218,8 +218,8 @@ class ChatServices {
           .doc(chatRoomID)
           .collection("messages")
           .add(newMessage.toMap());
+    // ignore: empty_catches
     } catch (e) {
-      print("sendMediaMessage error: $e");
     }
   }
 
@@ -236,7 +236,7 @@ class ChatServices {
         .collection("messages")
         .doc(messageId)
         .update({
-          "reactions.$uid": currentReaction == emoji
+          "${MessageFields.reactions}.$uid": currentReaction == emoji
               ? FieldValue.delete()
               : emoji,
         });
@@ -252,7 +252,7 @@ class ChatServices {
         .doc(chatRoomID)
         .collection("messages")
         .doc((messageId))
-        .update({"messages": newText, "edited": true});
+        .update({MessageFields.text: newText, MessageFields.edited: true});
   }
 
   Future<void> pinMessage({
@@ -265,6 +265,6 @@ class ChatServices {
         .doc(chatRoomID)
         .collection("messages")
         .doc(messageId)
-        .update({"isPinned": pinState,});
+        .update({MessageFields.isPinned: pinState});
   }
 }

@@ -1,6 +1,6 @@
 import 'package:chat_app/core/components/chat_bubble.dart';
 import 'package:chat_app/core/components/my_textfield.dart';
-import 'package:chat_app/models/message.dart';
+import 'package:chat_app/core/messagefields.dart';
 import 'package:chat_app/services/chat/chat_services.dart';
 import 'package:chat_app/services/chat/auth_services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,7 +28,7 @@ class _ChatPageState extends State<ChatPage> {
   String _previewText(Map<String, dynamic> data) {
     if (data["type"] == "image") return "photo";
     if (data["type"] == "video") return "video";
-    return (data["messages"] ?? "").toString();
+    return (data[MessageFields.text] ?? "").toString();
   }
 
   String _dateLabel(DateTime date) {
@@ -60,13 +60,7 @@ class _ChatPageState extends State<ChatPage> {
     return "${date.day}, ${months[date.month - 1]}, ${date.year}";
   }
 
-  void _pinMessageToTheTop(
-    DocumentSnapshot doc,
-    String message,
-    String chatRomID,
-  ) async {
-    setState(() {});
-  }
+ 
 
   void _showEditDialog(
     DocumentSnapshot doc,
@@ -130,7 +124,9 @@ class _ChatPageState extends State<ChatPage> {
     final reply = _replyingTo;
     if (reply == null) return SizedBox.shrink();
     final myUid = _authServices.getCurrentuser()!.uid;
-    final who = reply["senderID"] == myUid ? "You" : widget.receiverEmail;
+    final who = reply[MessageFields.senderID] == myUid
+        ? "You"
+        : widget.receiverEmail;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -176,10 +172,12 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildReplyQuote(Map<String, dynamic> data) {
-    if (data["replyToId"] == null) return const SizedBox.shrink();
+    if (data[MessageFields.replyToId] == null) return const SizedBox.shrink();
 
     final myUid = _authServices.getCurrentuser()!.uid;
-    final who = data["replyToSenderID"] == myUid ? "You" : widget.receiverEmail;
+    final who = data[MessageFields.replyToSenderID] == myUid
+        ? "You"
+        : widget.receiverEmail;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 2),
@@ -201,7 +199,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
           Text(
-            data["replyToText"] ?? "",
+            data[MessageFields.replyToText] ?? "",
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(color: Colors.white, fontSize: 12),
@@ -212,7 +210,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildReactions(Map<String, dynamic> data) {
-    final reactions = Map<String, dynamic>.from(data['reactions'] ?? {});
+    final reactions = Map<String, dynamic>.from(
+      data[MessageFields.reactions] ?? {},
+    );
     if (reactions.isEmpty) return const SizedBox.shrink();
 
     final counts = <String, int>{};
@@ -413,14 +413,14 @@ class _ChatPageState extends State<ChatPage> {
           return const Text("Loading");
         }
         //double tick when inside chatpage
-        List<String> ids = [senderID, widget.receiverID];
+        List<String> ids = [MessageFields.senderID, widget.receiverID];
         ids.sort();
         String chatRoomID = ids.join("_");
-        _chatService.markMessagesAsRead(chatRoomID, senderID);
+        _chatService.markMessagesAsRead(chatRoomID, MessageFields.senderID);
         final docs = snapshot.data!.docs;
         final pinnedDocs = docs.where((d) {
           final m = d.data() as Map<String, dynamic>;
-          return m["isPinned"] == true;
+          return m[MessageFields.isPinned] == true;
         }).toList();
 
         final latestPinned = pinnedDocs.isEmpty ? null : pinnedDocs.last;
@@ -437,7 +437,8 @@ class _ChatPageState extends State<ChatPage> {
                   final doc = docs[index];
                   final data = doc.data() as Map<String, dynamic>;
 
-                  final date = (data["timeStamp"] as Timestamp?)?.toDate();
+                  final date = (data[MessageFields.timeStamp] as Timestamp?)
+                      ?.toDate();
                   var showSeperator = false;
                   if (date != null) {
                     if (index == 0) {
@@ -445,8 +446,9 @@ class _ChatPageState extends State<ChatPage> {
                     } else {
                       final prev =
                           docs[index - 1].data() as Map<String, dynamic>;
-                      final prevDate = (prev["timeStamp"] as Timestamp?)
-                          ?.toDate();
+                      final prevDate =
+                          (prev[MessageFields.timeStamp] as Timestamp?)
+                              ?.toDate();
                       showSeperator =
                           prevDate == null || !_isSameday(date, prevDate);
                     }
@@ -474,11 +476,11 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessageItem(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    final isEdited = data["edited"] == true;
-    final isMessagePinned = data["isPinned"] == true;
+    final isEdited = data[MessageFields.edited] == true;
+    final isMessagePinned = data[MessageFields.isPinned] == true;
 
     bool isCurrentUser =
-        data["senderID"] == _authServices.getCurrentuser()!.uid;
+        data[MessageFields.senderID] == _authServices.getCurrentuser()!.uid;
     var alignment = isCurrentUser
         ? Alignment.centerRight
         : Alignment.centerLeft;
@@ -494,7 +496,7 @@ class _ChatPageState extends State<ChatPage> {
             onLongPress: () {
               final data = doc.data() as Map<String, dynamic>;
               final reactions = Map<String, dynamic>.from(
-                data["reactions"] ?? {},
+                data[MessageFields.reactions] ?? {},
               );
               final myUid = _authServices.getCurrentuser()!.uid;
               final myReactions = reactions[myUid] as String?;
@@ -563,7 +565,8 @@ class _ChatPageState extends State<ChatPage> {
                             setState(() {
                               _replyingTo = {
                                 "id": doc.id,
-                                "senderID": data["senderID"],
+                                MessageFields.senderID:
+                                    data[MessageFields.senderID],
                                 "text": _previewText(data),
                               };
                             });
@@ -598,7 +601,7 @@ class _ChatPageState extends State<ChatPage> {
                               Navigator.pop(dialogContext);
                               _showEditDialog(
                                 doc,
-                                (data["messages"] ?? ""),
+                                (data[MessageFields.text] ?? ""),
                                 chatRoomID,
                               );
                             },
@@ -628,7 +631,7 @@ class _ChatPageState extends State<ChatPage> {
                         TextButton(
                           onPressed: () async {
                             await Clipboard.setData(
-                              ClipboardData(text: data["messages"]),
+                              ClipboardData(text: data[MessageFields.text]),
                             );
                             if (!context.mounted) return;
 
@@ -733,7 +736,7 @@ class _ChatPageState extends State<ChatPage> {
                 : ChatBubble(
                     message: data["messages"],
                     isCurrentUser: isCurrentUser,
-                    isRead: data["isRead"] ?? false,
+                    isRead: data[MessageFields.isRead] ?? false,
                   ),
           ),
           _buildReactions(data),
@@ -749,7 +752,7 @@ class _ChatPageState extends State<ChatPage> {
                   const SizedBox(width: 6),
                 ],
                 Text(
-                  "${isEdited ? "edited." : ""}  ${_formatTimestamp(data["timeStamp"])}",
+                  "${isEdited ? MessageFields.edited : ""}  ${_formatTimestamp(data[MessageFields.timeStamp])}",
                   style: const TextStyle(fontSize: 10, color: Colors.grey),
                 ),
               ],
