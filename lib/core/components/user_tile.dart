@@ -1,16 +1,17 @@
+import 'package:chat_app/core/components/online_dot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class UserTile extends StatelessWidget {
   final String text;
   final void Function()? onTap;
-  final bool isOnine;
+  final String uid;
   final int unreadCount;
   const UserTile({
     super.key,
     required this.text,
     required this.onTap,
-    required this.isOnine,
+    required this.uid,
     required this.unreadCount,
   });
 
@@ -28,8 +29,6 @@ class UserTile extends StatelessWidget {
         padding: EdgeInsets.all(20),
         child: Row(
           children: [
-            //icon
-            // Icon(Icons.person),
             Stack(
               children: [
                 Icon(Icons.person),
@@ -37,14 +36,7 @@ class UserTile extends StatelessWidget {
                 Positioned(
                   bottom: 0,
                   right: 0,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: isOnine ? Colors.green : Colors.grey,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+                  child: OnlineDot(uid: uid, key: ValueKey(uid)),
                 ),
               ],
             ),

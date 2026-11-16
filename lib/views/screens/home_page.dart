@@ -3,11 +3,12 @@ import 'package:chat_app/core/components/search_widget.dart';
 import 'package:chat_app/core/components/user_tile.dart';
 import 'package:chat_app/services/chat/chat_services.dart';
 import 'package:chat_app/services/chat/auth_services.dart';
-import 'package:chat_app/views/auth_folder/main_page.dart';
+// import 'package:chat_app/views/auth_folder/main_page.dart';
 import 'package:chat_app/views/screens/chat_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+// import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({super.key});
@@ -25,6 +26,12 @@ class _HomePageState extends State<HomePage> {
   //should be called in MyDrawer
   void logOut() async {
     await FirebaseAuth.instance.signOut();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _authService.startPresence();
   }
 
   @override
@@ -128,8 +135,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             },
-            isOnine: userData["isOnline"] ?? false,
-            unreadCount: unreadCount,
+            unreadCount: unreadCount, uid: userData["uid"],
           );
         },
       );

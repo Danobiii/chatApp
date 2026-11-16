@@ -1,3 +1,6 @@
+import 'dart:async';
+
+// import 'package:chat_app/core/messagefields.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -39,18 +42,17 @@ class AuthServices {
       await _fireStore.collection('Users').doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
         "email": email,
-        "isOnline": true,
       }, SetOptions(merge: true));
       //get reference to realtime database
-      DatabaseReference userStatusRef = _userStatus
-          .ref()
-          .child('status')
-          .child(userCredential.user!.uid);
+      // DatabaseReference userStatusRef = _userStatus
+      //     .ref()
+      //     .child('status')
+      //     .child(userCredential.user!.uid);
 
-      //tell firebase what to d when a user disconnects
-      userStatusRef.onDisconnect().update({"isOnline": false});
-      //set online in realtim database
-      userStatusRef.update({"isOnline": true});
+      // //tell firebase what to do when a user disconnects
+      // userStatusRef.onDisconnect().update({"isOnline": false});
+      // //set online in realtim database
+      // userStatusRef.update({"isOnline": true});
       return userCredential;
     } on FirebaseAuthException catch (e) {
       print("login error: ${e.code}");
@@ -94,16 +96,43 @@ class AuthServices {
     }
   }
 
+  static StreamSubscription<DatabaseEvent>? _presenceSub;
+  void startPresence() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+
+    final statusRef = _userStatus.ref("status/$uid");
+    final connectedRef = _userStatus.ref((".info/connected"));
+    _presenceSub?.cancel();
+    _presenceSub = connectedRef.onValue.listen((event) async {
+      if (event.snapshot.value == true) {
+        await statusRef.onDisconnect().update({
+          "isOnline": false,
+          "lastSeen": ServerValue.timestamp,
+        });
+        await statusRef.update({"isOnline": true});
+      }
+    });
+  }
+
+  Future<void> stopPresence() async {
+    await _presenceSub?.cancel();
+    _presenceSub = null;
+
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    await _userStatus.ref("status/$uid").update({
+      "isOnline": false,
+      "lastSeen": ServerValue.timestamp,
+    });
+  }
+
   //sign out
   Future<void> signOut() async {
-    await _fireStore.collection("Users").doc(_auth.currentUser!.uid).update({
-      "isOnline": false,
-    });
+    await stopPresence();
     return await _auth.signOut();
   }
-Future<String?> fileSharing() async{
-  //pick
-}
+
   Future<String?> uploadPFP() async {
     //pick image from gallery
     try {
