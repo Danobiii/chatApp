@@ -60,8 +60,6 @@ class _ChatPageState extends State<ChatPage> {
     return "${date.day}, ${months[date.month - 1]}, ${date.year}";
   }
 
- 
-
   void _showEditDialog(
     DocumentSnapshot doc,
     String currentText,
@@ -477,6 +475,12 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildMessageItem(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     final isEdited = data[MessageFields.edited] == true;
+    // final isStarred = data[MessageFields.starredBy] == true;
+    final myUid = _authServices.getCurrentuser()!.uid;
+    final starredBy = Map<String, dynamic>.from(
+      data[MessageFields.starredBy] ?? {},
+    );
+    final isStarred = starredBy[myUid] == true;
     final isMessagePinned = data[MessageFields.isPinned] == true;
 
     bool isCurrentUser =
@@ -610,6 +614,22 @@ class _ChatPageState extends State<ChatPage> {
                               children: [Icon(Icons.edit), Text("Edit")],
                             ),
                           ),
+                        TextButton(
+                          onPressed: () async {
+                            Navigator.pop(dialogContext);
+                            await _chatService.starMessage(
+                              messageId: doc.id,
+                              chatRoomID: chatRoomID,
+                              starredState: !isStarred,
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              Icon(isStarred ? Icons.star_border : Icons.star),
+                              Text(isStarred ? "Unstar" : "Star"),
+                            ],
+                          ),
+                        ),
                         TextButton(
                           onPressed: () async {
                             Navigator.pop(dialogContext);
@@ -751,8 +771,9 @@ class _ChatPageState extends State<ChatPage> {
                   const Icon(Icons.push_pin, size: 12, color: Colors.grey),
                   const SizedBox(width: 6),
                 ],
+                if (isStarred) Icon(Icons.star, size: 12, color: Colors.grey),
                 Text(
-                  "${isEdited ? MessageFields.edited : ""}  ${_formatTimestamp(data[MessageFields.timeStamp])}",
+                  "${isEdited ? MessageFields.edited : ""} ${_formatTimestamp(data[MessageFields.timeStamp])}",
                   style: const TextStyle(fontSize: 10, color: Colors.grey),
                 ),
               ],

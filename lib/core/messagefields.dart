@@ -11,4 +11,5 @@ class MessageFields {
   static const isTyping = "isTyping";
   static const isRead = "isRead";
   static const receiverID = "receiverID";
+  static const starredBy = "starredBy";
 }

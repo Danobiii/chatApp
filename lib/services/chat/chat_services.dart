@@ -218,9 +218,8 @@ class ChatServices {
           .doc(chatRoomID)
           .collection("messages")
           .add(newMessage.toMap());
-    // ignore: empty_catches
-    } catch (e) {
-    }
+      // ignore: empty_catches
+    } catch (e) {}
   }
 
   Future<void> emojiReactions({
@@ -229,7 +228,7 @@ class ChatServices {
     required String emoji,
     required String? currentReaction,
   }) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final uid = _auth.currentUser!.uid;
     await _firestore
         .collection("chat_rooms")
         .doc(chatRoomID)
@@ -239,6 +238,24 @@ class ChatServices {
           "${MessageFields.reactions}.$uid": currentReaction == emoji
               ? FieldValue.delete()
               : emoji,
+        });
+  }
+
+  Future<void> starMessage({
+    required String messageId,
+    required String chatRoomID,
+    required bool starredState,
+  }) async {
+    final uid = _auth.currentUser!.uid;
+    await _firestore
+        .collection("chat_rooms")
+        .doc(chatRoomID)
+        .collection("messages")
+        .doc(messageId)
+        .update({
+          "${MessageFields.starredBy}.$uid": starredState
+              ? true
+              : FieldValue.delete(),
         });
   }
 
